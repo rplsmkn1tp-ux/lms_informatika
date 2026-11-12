@@ -414,36 +414,127 @@
 
             <!-- 1. Tipe Upload File -->
             @if(in_array('file', $types))
-                <div style="display: flex; flex-direction: column; gap: 8px">
-                    <label style="font-size: 14px; font-weight: 700; color: #15191F">Berkas Jawaban (Dokumen/Gambar/ZIP)</label>
+                <div style="display: flex; flex-direction: column; gap: 10px">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                        <label style="font-size: 14px; font-weight: 700; color: #15191F">Berkas Jawaban (Dokumen/Gambar/ZIP)</label>
+                        @if($submission && $submission->file_path && !$uploadedFile)
+                            <span style="font-size: 11px; font-weight: 700; color: #16A34A; background: #DCFCE7; padding: 3px 8px; border-radius: 6px; border: 1px solid #BBF7D0;">
+                                ✓ Sudah Ada Berkas Tersimpan
+                            </span>
+                        @endif
+                    </div>
 
                     @if($submission && $submission->file_path)
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 12px; background: #F4F5F2; border: 1px solid #E2E4DF">
-                            <div style="display: flex; align-items: center; gap: 10px">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #2347C4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                                <span style="font-size: 13px; font-weight: 600; color: #15191F">Berkas yang telah diunggah</span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #EEF2FF; color: #2347C4; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                </div>
+                                <div style="display: flex; flex-direction: column; min-width: 0;">
+                                    <span style="font-size: 13px; font-weight: 700; color: #1E293B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Berkas Jawaban Anda Sebelumnya</span>
+                                    <span style="font-size: 11px; color: #64748B;">Klik tombol di kanan untuk mengunduh kembali berkas</span>
+                                </div>
                             </div>
-                            <a href="{{ route('guru.tugas.submission.download', $submission->id) }}" style="font-size: 12px; font-weight: 700; color: #2347C4; text-decoration: none; padding: 6px 12px; border-radius: 8px; background: #E8EDFC;">
-                                Unduh File Anda
+                            <a href="{{ route('guru.tugas.submission.download', $submission->id) }}" style="font-size: 12px; font-weight: 700; color: #2347C4; text-decoration: none; padding: 7px 14px; border-radius: 10px; background: #E8EDFC; border: 1px solid #C7D7FE; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#DBE5FE'" onmouseout="this.style.backgroundColor='#E8EDFC'">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span>Unduh File</span>
                             </a>
                         </div>
                     @endif
 
                     @if(!$isLocked)
-                        <div style="margin-top: 4px;">
-                            <input 
-                                type="file" 
-                                wire:model="uploadedFile" 
-                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.jpg,.jpeg,.png,.webp"
-                                style="font-size: 13px"
+                        <div x-data="{ isDragging: false }" style="display: flex; flex-direction: column; gap: 10px;">
+                            <!-- Custom Interactive Upload Dropzone -->
+                            <div 
+                                @dragover.prevent="isDragging = true"
+                                @dragleave.prevent="isDragging = false"
+                                @drop="isDragging = false"
+                                class="relative rounded-2xl p-6 text-center transition-all duration-200 cursor-pointer"
+                                :class="isDragging ? 'bg-[#EEF2FF] border-[#2347C4] shadow-md scale-[1.01]' : 'bg-[#F8FAFC] hover:bg-[#EEF2FF]/40 border-slate-300 hover:border-[#2347C4]'"
+                                style="border-width: 2px; border-style: dashed;"
                             >
-                            <span style="font-size: 12px; color: #6B7280; display: block; margin-top: 4px;">
-                                Format yang didukung: PPT/PPTX, PDF, DOC/DOCX, XLS/XLSX, Gambar, atau ZIP (Maks. 20 MB).
-                            </span>
-                            <div wire:loading wire:target="uploadedFile" style="font-size: 12px; color: #2347C4; margin-top: 4px;">
-                                Mengunggah file ke preview...
+                                <input 
+                                    type="file" 
+                                    wire:model="uploadedFile" 
+                                    id="fileUploadInput"
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.jpg,.jpeg,.png,.webp"
+                                >
+                                
+                                <div class="flex flex-col items-center pointer-events-none">
+                                    <div class="w-14 h-14 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center text-[#2347C4] mb-3 transition-transform"
+                                         :style="isDragging ? 'background-color: #2347C4; color: #FFFFFF; border-color: #2347C4;' : ''">
+                                        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="17 8 12 3 7 8"></polyline>
+                                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="flex flex-wrap items-center justify-center gap-2 mb-2">
+                                        <span class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white shadow-sm transition-all"
+                                              style="background-color: #2347C4;">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"></path></svg>
+                                            <span>Pilih Berkas Jawaban</span>
+                                        </span>
+                                        <span class="text-xs sm:text-sm font-semibold text-slate-500">atau seret dan lepas berkas ke sini</span>
+                                    </div>
+
+                                    <p class="text-xs text-slate-500 max-w-md m-0">
+                                        Format yang didukung: <span class="font-semibold text-slate-700">PPT/PPTX, PDF, DOC/DOCX, XLS/XLSX, Gambar, atau ZIP</span> (Maks. 20 MB).
+                                    </p>
+                                </div>
                             </div>
-                            @error('uploadedFile') <span style="font-size: 12px; color: #DC2626; display: block; margin-top: 4px;">{{ $message }}</span> @enderror
+
+                            <!-- Upload Loading Indicator -->
+                            <div wire:loading wire:target="uploadedFile" class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-[#2347C4] text-xs font-semibold flex items-center gap-2.5 animate-pulse">
+                                <svg class="animate-spin h-4 w-4 text-[#2347C4] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <span>Sedang memproses & mengunggah berkas ke sistem... Mohon tunggu sebentar.</span>
+                            </div>
+
+                            <!-- Error Message -->
+                            @error('uploadedFile')
+                                <div class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-red-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    <span>{{ $message }}</span>
+                                </div>
+                            @enderror
+
+                            <!-- Preview Berkas yang Baru Dipilih -->
+                            @if($uploadedFile)
+                                <div class="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-between gap-3 shadow-xs transition-all">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="text-xs font-bold text-emerald-900 truncate max-w-[220px] sm:max-w-md">
+                                                    {{ $uploadedFile->getClientOriginalName() }}
+                                                </span>
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 shrink-0">
+                                                    Siap Dikumpulkan
+                                                </span>
+                                            </div>
+                                            <p class="text-[11px] text-emerald-700 mt-0.5 m-0">
+                                                Ukuran: {{ round($uploadedFile->getSize() / 1024, 1) > 1024 ? round($uploadedFile->getSize() / 1048576, 2) . ' MB' : round($uploadedFile->getSize() / 1024, 1) . ' KB' }}
+                                                &bull; Berkas akan disimpan saat Anda menekan tombol "Kumpulkan Jawaban".
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <button 
+                                            type="button" 
+                                            wire:click="removeUploadedFile" 
+                                            class="text-xs font-bold text-red-600 hover:text-red-800 px-3 py-1.5 rounded-lg border border-red-200 bg-white hover:bg-red-50 transition-colors flex items-center gap-1 cursor-pointer"
+                                            title="Batalkan berkas ini"
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                            <span>Hapus</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </div>

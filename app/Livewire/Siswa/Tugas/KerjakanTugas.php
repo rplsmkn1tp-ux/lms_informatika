@@ -492,6 +492,11 @@ class KerjakanTugas extends Component
             : 'Tugas berhasil dikumpulkan! Anda dapat memantau status penilaian dari guru di halaman ini.');
     }
 
+    public function removeUploadedFile(): void
+    {
+        $this->uploadedFile = null;
+    }
+
     public function render()
     {
         return view('livewire.siswa.tugas.kerjakan-tugas');
