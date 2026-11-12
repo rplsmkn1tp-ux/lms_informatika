@@ -61,46 +61,15 @@ Jika Anda menjalankan perintah `php artisan migrate:fresh --seed` (pada environm
   - Email: `siswa@example.com`
   - Password: `password`
 
-## Panduan Deployment (Server Sekolah / Shared Hosting)
-Untuk mengunggah aplikasi ke server sekolah atau shared hosting:
+## Panduan Deployment ke Server Sekolah (Ubuntu + Nginx + MySQL)
+Panduan langkah demi langkah yang lengkap, teruji, dan siap pakai untuk melakukan deployment aplikasi ini di **Server Ubuntu (Nginx, MySQL, PHP 8.3 FPM, Vite, dan Livewire)** dapat dilihat langsung pada berkas:
+👉 **[Lihat Panduan Lengkap Deploy (DEPLOYMENT.md)](./DEPLOYMENT.md)**
 
-### Prasyarat:
-- **PHP**: Minimal versi 8.3
-- **Database**: MySQL 8.0+ atau MariaDB
-- **Web Server**: Apache / Nginx
-- Composer dan Node.js/NPM (jika tidak ada akses SSH untuk npm, Anda bisa build aset `npm run build` di lokal dan unggah folder `public/build/`).
-
-### Langkah-langkah Deployment:
-1. **Unggah Kode**: Upload seluruh file proyek ke folder web root server Anda (misal `public_html/` atau `/var/www/html/`). Pastikan **hanya** folder `public/` yang diekspos secara langsung (jika memungkinkan atur DocumentRoot).
-2. **Setup .env**: Sesuaikan file `.env` dengan kredensial server produksi:
-   ```env
-   APP_ENV=production
-   APP_DEBUG=false
-   APP_URL=https://lms.sekolahanda.sch.id
-   ```
-3. **Optimasi Laravel**:
-   Jika Anda memiliki akses SSH, jalankan:
-   ```bash
-   php artisan config:cache
-   php artisan route:cache
-   php artisan view:cache
-   ```
-4. **Storage Link**:
-   Jalankan `php artisan storage:link` di server untuk menghubungkan `storage/app/public` ke `public/storage`.
-   *Jika di cPanel tanpa terminal, Anda bisa membuat route sementara untuk memanggil `Artisan::call('storage:link')`.*
-5. **Keamanan (HTTPS)**:
-   Sangat disarankan (WAJIB) untuk menginstal sertifikat SSL (misal dari Let's Encrypt) agar semua transaksi data (termasuk login) terlindungi enkripsi HTTPS.
-6. **Background Jobs / Queue (Opsional)**:
-   Untuk notifikasi email berjalan di latar belakang tanpa memberatkan user:
-   - Atur `.env`: `QUEUE_CONNECTION=database`
-   - Setup Cron Job di cPanel/server:
-     ```bash
-     * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
-     ```
+---
 
 ## Tech Stack
-- Laravel 11
-- Livewire 3
+- Laravel 13
+- Livewire 4
 - Flux UI
 - TailwindCSS
 - Alpine.js
