@@ -6,7 +6,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-Route::match(['get', 'post'], 'logout', function (\Illuminate\Http\Request $request) {
+Route::get('logout', function (\Illuminate\Http\Request $request) {
     \Illuminate\Support\Facades\Auth::guard('web')->logout();
 
     if ($request->hasSession()) {
@@ -15,7 +15,7 @@ Route::match(['get', 'post'], 'logout', function (\Illuminate\Http\Request $requ
     }
 
     return redirect('/');
-})->name('logout');
+});
 
 Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::get('dashboard', function() {
