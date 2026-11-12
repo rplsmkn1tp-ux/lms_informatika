@@ -18,22 +18,22 @@ test('global search component is displayed on admin dashboard', function () {
         ->assertSeeLivewire(GlobalSearch::class);
 });
 
-test('global search component is displayed on guru dashboard', function () {
+test('global search component is not displayed on guru dashboard', function () {
     $guru = User::factory()->create(['role' => 'guru', 'status' => 'active']);
 
     actingAs($guru)
         ->get('/guru')
         ->assertOk()
-        ->assertSeeLivewire(GlobalSearch::class);
+        ->assertDontSeeLivewire(GlobalSearch::class);
 });
 
-test('global search component is displayed on siswa beranda', function () {
+test('global search component is not displayed on siswa beranda', function () {
     $siswa = User::factory()->create(['role' => 'siswa', 'status' => 'active']);
 
     actingAs($siswa)
         ->get('/beranda')
         ->assertOk()
-        ->assertSeeLivewire(GlobalSearch::class);
+        ->assertDontSeeLivewire(GlobalSearch::class);
 });
 
 test('admin can search for users and classrooms', function () {

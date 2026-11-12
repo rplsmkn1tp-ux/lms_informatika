@@ -35,33 +35,65 @@
     @endif
 
     <!-- Filter & Search Bar -->
-    <div class="mb-6 bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm flex flex-col md:flex-row md:items-center gap-3 justify-between">
-        <div class="flex-1 relative">
-            <svg class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <div class="mb-6 p-3 bg-[#F8F9FA] rounded-2xl border border-[#E2E4DF] shadow-2xs flex flex-col md:flex-row md:items-center gap-3 justify-between">
+        <!-- Search Input -->
+        <label class="flex-1 min-w-[220px] flex items-center gap-2.5 px-3.5 rounded-xl transition-all cursor-text shadow-xs focus-within:ring-2 focus-within:ring-[#2347C4]/20"
+               style="height: 42px; border: 1px solid #E2E4DF; background-color: #FFFFFF; box-sizing: border-box;">
+            <svg class="w-4 h-4 flex-none text-[#8C95A3]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
             <input 
                 type="text" 
                 wire:model.live.debounce.300ms="search" 
                 placeholder="Cari judul tugas..." 
-                class="w-full pl-10 pr-4 py-2 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2347C4]/20 focus:border-[#2347C4] transition-all"
+                class="flex-1 min-w-0 border-0 outline-none bg-transparent text-xs font-medium text-[#15191F] placeholder:text-[#8C95A3] p-0 focus:ring-0 focus:outline-none"
+                style="border: none; outline: none; background: transparent; padding: 0; box-shadow: none;"
             >
-        </div>
+            @if($search)
+                <button type="button" 
+                        wire:click="$set('search', '')" 
+                        class="text-sm font-bold text-[#8C95A3] hover:text-[#15191F] p-0.5 rounded cursor-pointer leading-none"
+                        title="Hapus pencarian">
+                    &times;
+                </button>
+            @endif
+        </label>
 
-        <div class="flex flex-wrap sm:flex-nowrap items-center gap-3">
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 flex-none">
             <!-- Filter Kelas -->
-            <select wire:model.live="classFilter" class="px-3.5 py-2 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2347C4]/20 focus:border-[#2347C4] text-zinc-700">
-                <option value="">Semua Kelas</option>
-                @foreach($classrooms as $cls)
-                    <option value="{{ $cls->id }}">{{ $cls->name }}</option>
-                @endforeach
-            </select>
+            <div class="relative w-full sm:w-44 flex-none">
+                <select wire:model.live="classFilter" 
+                        class="w-full text-xs font-semibold text-[#15191F] rounded-xl pl-3.5 pr-8 transition-all cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-[#2347C4]/20 appearance-none"
+                        style="height: 42px; border: 1px solid #E2E4DF; background-color: #FFFFFF; color: #15191F;">
+                    <option value="">Semua Kelas</option>
+                    @foreach($classrooms as $cls)
+                        <option value="{{ $cls->id }}">{{ $cls->name }}</option>
+                    @endforeach
+                </select>
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#8C95A3] flex items-center">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+            </div>
 
             <!-- Filter Status -->
-            <select wire:model.live="statusFilter" class="px-3.5 py-2 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2347C4]/20 focus:border-[#2347C4] text-zinc-700">
-                <option value="">Semua Status</option>
-                <option value="aktif">Aktif</option>
-                <option value="lewat">Lewat Tenggat</option>
-                <option value="draft">Draft</option>
-            </select>
+            <div class="relative w-full sm:w-40 flex-none">
+                <select wire:model.live="statusFilter" 
+                        class="w-full text-xs font-semibold text-[#15191F] rounded-xl pl-3.5 pr-8 transition-all cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-[#2347C4]/20 appearance-none"
+                        style="height: 42px; border: 1px solid #E2E4DF; background-color: #FFFFFF; color: #15191F;">
+                    <option value="">Semua Status</option>
+                    <option value="aktif">Aktif</option>
+                    <option value="lewat">Lewat Tenggat</option>
+                    <option value="draft">Draft</option>
+                </select>
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#8C95A3] flex items-center">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -84,9 +116,21 @@
                         <tr class="hover:bg-zinc-50/60 transition-colors">
                             <td class="py-4 px-5">
                                 <div class="flex flex-col">
-                                    <a href="{{ route('guru.tugas.detail', $tugas->id) }}" wire:navigate class="font-bold text-zinc-900 text-base hover:text-[#2347C4] transition-colors">
-                                        {{ $tugas->title }}
-                                    </a>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <a href="{{ route('guru.tugas.detail', $tugas->id) }}" wire:navigate class="font-bold text-zinc-900 text-base hover:text-[#2347C4] transition-colors">
+                                            {{ $tugas->title }}
+                                        </a>
+                                        @if($tugas->isGroup())
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200" title="Tugas Dikerjakan Berkelompok">
+                                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                                Kelompok (Maks. {{ $tugas->max_group_members ?? 4 }})
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-zinc-100 text-zinc-600">
+                                                Individu
+                                            </span>
+                                        @endif
+                                    </div>
                                     <div class="flex items-center gap-2 text-xs text-zinc-400 mt-1 flex-wrap">
                                         <span>Max Nilai: <strong>{{ $tugas->max_score }}</strong></span>
                                         @if($tugas->lesson)
@@ -166,7 +210,7 @@
                                     </button>
 
                                     <!-- Hapus -->
-                                    <button type="button" wire:click="delete({{ $tugas->id }})" wire:confirm="Apakah Anda yakin ingin menghapus tugas ini? (Tugas tidak dapat dihapus jika sudah ada siswa yang mengumpulkan jawaban)" class="p-1.5 text-zinc-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus Tugas">
+                                    <button type="button" wire:click="delete({{ $tugas->id }})" wire:confirm="Apakah Anda yakin ingin menghapus tugas '{{ $tugas->title }}'? Semua data pengumpulan dan nilai siswa yang terkait akan ikut dihapus secara permanen." class="p-1.5 text-zinc-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer" title="Hapus Tugas">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                     </button>
                                 </div>

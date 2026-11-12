@@ -1,7 +1,7 @@
-<div class="space-y-6">
+<div style="max-width: 1280px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 24px">
     <div>
         <flux:heading size="xl">Kehadiran Saya</flux:heading>
-        <flux:subheading>Riwayat kehadiran Anda pada semester ini.</flux:subheading>
+        <flux:subheading>Riwayat presensi dan persentase kehadiran Anda pada semester ini.</flux:subheading>
     </div>
 
     @if(!$classroom)

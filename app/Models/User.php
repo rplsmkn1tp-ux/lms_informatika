@@ -71,6 +71,12 @@ class User extends Authenticatable
         return $this->hasMany(Submission::class, 'student_id');
     }
 
+    public function assessmentGroups()
+    {
+        return $this->belongsToMany(AssessmentGroup::class, 'assessment_group_members', 'student_id', 'assessment_group_id')
+            ->withTimestamps();
+    }
+
     public function notes()
     {
         return $this->hasMany(Note::class, 'student_id');
@@ -81,6 +87,11 @@ class User extends Authenticatable
         return $this->classrooms()
             ->whereHas('academicYear', fn ($q) => $q->where('is_active', true))
             ->first();
+    }
+
+    public function getClassroomAttribute(): ?Classroom
+    {
+        return $this->activeClassroom() ?? $this->classrooms()->first();
     }
 
     public function attendanceSessionsAsTeacher()

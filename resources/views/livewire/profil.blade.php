@@ -23,9 +23,26 @@
                             <p class="font-medium capitalize">{{ auth()->user()->status }}</p>
                         </div>
                         @if(auth()->user()->role === 'siswa')
+                            @php
+                                $cr = auth()->user()->classroom;
+                            @endphp
                             <div>
                                 <flux:subheading class="text-xs font-semibold tracking-wider uppercase">Kelas</flux:subheading>
-                                <p class="font-medium">{{ auth()->user()->classroom?->name ?? '-' }}</p>
+                                <p class="font-medium">
+                                    @if($cr)
+                                        <span>{{ $cr->name }}</span>
+                                        @if($cr->major && !str_contains($cr->name, $cr->major))
+                                            <span class="text-xs text-zinc-500 font-normal">({{ $cr->grade }} {{ $cr->major }})</span>
+                                        @endif
+                                    @else
+                                        -
+                                    @endif
+                                </p>
+                            </div>
+                        @elseif(auth()->user()->role === 'guru' && auth()->user()->subject)
+                            <div>
+                                <flux:subheading class="text-xs font-semibold tracking-wider uppercase">Mata Pelajaran</flux:subheading>
+                                <p class="font-medium">{{ auth()->user()->subject }}</p>
                             </div>
                         @endif
                     </div>

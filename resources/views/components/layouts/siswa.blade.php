@@ -6,7 +6,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; background: #F4F5F2; }
-        a { color: #2347C4; } a:hover { color: #1A3596; }
+        :where(a:not([class*="text-"])) { color: #2347C4; }
+        :where(a:not([class*="text-"]):hover) { color: #1A3596; }
+        a.text-white, a.text-white * { color: #FFFFFF !important; }
         :focus-visible { outline: 3px solid #F2A93B; outline-offset: 2px; }
         @media (max-width: 768px) {
             .desktop-nav { display: none !important; }
@@ -31,16 +33,11 @@
                     <a href="{{ route('siswa.beranda') }}" aria-current="{{ request()->routeIs('siswa.beranda') ? 'page' : 'false' }}" style="padding: 11px 14px; border-radius: 10px; {{ request()->routeIs('siswa.beranda') ? 'background: #E8EDFC; color: #2347C4; font-weight: 700;' : 'color: #4A515C; font-weight: 600;' }} font-size: 14px; text-decoration: none">Beranda</a>
                     <a href="{{ route('siswa.belajar') }}" style="padding: 11px 14px; border-radius: 10px; {{ request()->routeIs('siswa.belajar*') ? 'background: #E8EDFC; color: #2347C4; font-weight: 700;' : 'color: #4A515C; font-weight: 600;' }} font-size: 14px; text-decoration: none">Materi</a>
                     <a href="{{ route('siswa.tugas') }}" style="padding: 11px 14px; border-radius: 10px; {{ request()->routeIs('siswa.tugas*') ? 'background: #E8EDFC; color: #2347C4; font-weight: 700;' : 'color: #4A515C; font-weight: 600;' }} font-size: 14px; text-decoration: none">Tugas</a>
+                    <a href="{{ route('siswa.absensi') }}" style="padding: 11px 14px; border-radius: 10px; {{ request()->routeIs('siswa.absensi') ? 'background: #E8EDFC; color: #2347C4; font-weight: 700;' : 'color: #4A515C; font-weight: 600;' }} font-size: 14px; text-decoration: none">Kehadiran</a>
                     <a href="{{ route('siswa.rapor') }}" style="padding: 11px 14px; border-radius: 10px; {{ request()->routeIs('siswa.rapor') ? 'background: #E8EDFC; color: #2347C4; font-weight: 700;' : 'color: #4A515C; font-weight: 600;' }} font-size: 14px; text-decoration: none">Nilai</a>
                 </nav>
-                <div style="flex: 1 1 260px; display: flex; justify-content: flex-end; align-items: center; gap: 10px">
-                    <div style="flex: 0 1 360px; min-width: 0;">
-                        <livewire:global-search role="siswa" key="search-siswa-desktop" />
-                    </div>
-                    <button type="button" aria-label="Notifikasi, 2 baru" style="position: relative; width: 44px; height: 44px; flex: none; border-radius: 12px; border: 1px solid #E2E4DF; background: #FFFFFF; color: #15191F; display: flex; align-items: center; justify-content: center; cursor: pointer">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
-                        <span style="position: absolute; top: 9px; right: 10px; width: 8px; height: 8px; border-radius: 99px; background: #E0892A; border: 2px solid #FFFFFF"></span>
-                    </button>
+                <div style="flex: 1 1 auto; display: flex; justify-content: flex-end; align-items: center; gap: 10px">
+                    <livewire:notification-dropdown key="notif-siswa-desktop" />
                     <x-user-menu />
                 </div>
             </div>
@@ -53,11 +50,9 @@
                     <span style="font-weight: 800; font-size: 15px">Informatika</span>
                 </a>
                 <div style="display: flex; align-items: center; gap: 8px;">
+                    <livewire:notification-dropdown key="notif-siswa-mobile" />
                     <x-user-menu />
                 </div>
-            </div>
-            <div style="width: 100%;">
-                <livewire:global-search role="siswa" key="search-siswa-mobile" />
             </div>
         </header>
 
@@ -77,6 +72,10 @@
             <a href="{{ route('siswa.tugas') }}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; {{ request()->routeIs('siswa.tugas*') ? 'color: #2347C4; font-weight: 700;' : 'color: #4A515C; font-weight: 500;' }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 <span style="font-size: 11px">Tugas</span>
+            </a>
+            <a href="{{ route('siswa.absensi') }}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; {{ request()->routeIs('siswa.absensi') ? 'color: #2347C4; font-weight: 700;' : 'color: #4A515C; font-weight: 500;' }}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span style="font-size: 11px">Kehadiran</span>
             </a>
             <a href="{{ route('siswa.rapor') }}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; {{ request()->routeIs('siswa.rapor') ? 'color: #2347C4; font-weight: 700;' : 'color: #4A515C; font-weight: 500;' }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>

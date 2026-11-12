@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\WithFileUploads;
 use App\Models\Setting;
+use App\Services\LogoService;
 use Illuminate\Support\Facades\Storage;
 use Flux\Flux;
 
@@ -27,10 +28,11 @@ class Settings extends Component
     
     public $logo;
     public $currentLogoUrl = null;
+    public $trimmedPreviewData = null;
 
     public function mount()
     {
-        // Pioritaskan app_name dari yang terbaru atau jika sama, baca dari 'app_name'
+        // Prioritaskan app_name dari yang terbaru atau jika sama, baca dari 'app_name'
         $this->app_name = Setting::getValue('app_name', 'Ruang Informatika');
         $this->app_subtitle = Setting::getValue('app_subtitle', 'SMK Negeri 1 Tanjungpandan');
         $this->registration_open = Setting::getValue('registration_open', true);
@@ -41,6 +43,35 @@ class Settings extends Component
         $this->dashboard_siswa_title = Setting::getValue('dashboard_siswa_title', 'Halo, {nama}. Siap lanjut belajar?');
         $this->dashboard_siswa_subtitle = Setting::getValue('dashboard_siswa_subtitle', '');
         $this->currentLogoUrl = Setting::getValue('app_logo') ?? Setting::getValue('logo');
+    }
+
+    public function updatedLogo()
+    {
+        $this->validateOnly('logo', [
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg,webp|max:2048',
+        ]);
+
+        if ($this->logo) {
+            $ext = strtolower($this->logo->getClientOriginalExtension());
+            if ($ext === 'svg') {
+                $this->trimmedPreviewData = $this->logo->temporaryUrl();
+            } else {
+                $tempPath = $this->logo->getRealPath();
+                if ($tempPath && file_exists($tempPath)) {
+                    $logoService = app(LogoService::class);
+                    $tempTrimmed = tempnam(sys_get_temp_dir(), 'logo_trim_') . '.png';
+                    $logoService->trimImage($tempPath, $tempTrimmed, 0.04);
+                    if (file_exists($tempTrimmed)) {
+                        $this->trimmedPreviewData = 'data:image/png;base64,' . base64_encode(file_get_contents($tempTrimmed));
+                        @unlink($tempTrimmed);
+                    } else {
+                        $this->trimmedPreviewData = $this->logo->temporaryUrl();
+                    }
+                } else {
+                    $this->trimmedPreviewData = $this->logo->temporaryUrl();
+                }
+            }
+        }
     }
 
     public function save()
@@ -76,9 +107,18 @@ class Settings extends Component
             if ($this->currentLogoUrl) {
                 Storage::disk('public')->delete($this->currentLogoUrl);
             }
-            $path = $this->logo->store('logos', 'public');
-            Setting::setValue('app_logo', $path);
-            $this->currentLogoUrl = $path;
+            $origPath = Setting::getValue('app_logo_original');
+            if ($origPath) {
+                Storage::disk('public')->delete($origPath);
+            }
+
+            $logoService = app(LogoService::class);
+            $paths = $logoService->processUploadedLogo($this->logo);
+
+            Setting::setValue('app_logo', $paths['trimmed']);
+            Setting::setValue('app_logo_original', $paths['original']);
+            $this->currentLogoUrl = $paths['trimmed'];
+            $this->trimmedPreviewData = null;
         }
 
         Flux::toast('Pengaturan berhasil disimpan', variant: 'success');
@@ -93,8 +133,14 @@ class Settings extends Component
 
         if ($this->currentLogoUrl) {
             Storage::disk('public')->delete($this->currentLogoUrl);
+            $origPath = Setting::getValue('app_logo_original');
+            if ($origPath) {
+                Storage::disk('public')->delete($origPath);
+                Setting::setValue('app_logo_original', null);
+            }
             Setting::setValue('app_logo', null);
             $this->currentLogoUrl = null;
+            $this->trimmedPreviewData = null;
         }
 
         Flux::toast('Logo dikembalikan ke default', variant: 'success');

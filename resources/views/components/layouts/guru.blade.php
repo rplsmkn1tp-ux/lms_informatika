@@ -76,14 +76,8 @@
                     </div>
                     <a href="{{ route('guru.jadwal') }}" style="padding: 11px 14px; border-radius: 10px; {{ request()->routeIs('guru.jadwal') ? 'background: #E8EDFC; color: #2347C4; font-weight: 700;' : 'color: #4A515C; font-weight: 600;' }} font-size: 14px; text-decoration: none">Jadwal</a>
                 </nav>
-                <div style="flex: 1 1 260px; display: flex; justify-content: flex-end; align-items: center; gap: 10px">
-                    <div style="flex: 0 1 360px; min-width: 0;">
-                        <livewire:global-search role="guru" key="search-guru-desktop" />
-                    </div>
-                    <button type="button" aria-label="Notifikasi, 2 baru" style="position: relative; width: 44px; height: 44px; flex: none; border-radius: 12px; border: 1px solid #E2E4DF; background: #FFFFFF; color: #15191F; display: flex; align-items: center; justify-content: center; cursor: pointer">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
-                        <span style="position: absolute; top: 9px; right: 10px; width: 8px; height: 8px; border-radius: 99px; background: #E0892A; border: 2px solid #FFFFFF"></span>
-                    </button>
+                <div style="flex: 1 1 auto; display: flex; justify-content: flex-end; align-items: center; gap: 10px">
+                    <livewire:notification-dropdown key="notif-guru-desktop" />
                     <x-user-menu />
                 </div>
             </div>
@@ -96,11 +90,9 @@
                     <span style="font-weight: 800; font-size: 15px">Informatika Guru</span>
                 </a>
                 <div style="display: flex; align-items: center; gap: 8px;">
+                    <livewire:notification-dropdown key="notif-guru-mobile" />
                     <x-user-menu />
                 </div>
-            </div>
-            <div style="width: 100%;">
-                <livewire:global-search role="guru" key="search-guru-mobile" />
             </div>
         </header>
 

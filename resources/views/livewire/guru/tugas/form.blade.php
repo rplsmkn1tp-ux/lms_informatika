@@ -200,6 +200,63 @@
                     </div>
                     @error('submission_types') <span class="text-xs text-rose-500 block">{{ $message }}</span> @enderror
                 </div>
+
+                <!-- Mode Penugasan (Individu / Kelompok) -->
+                <div class="bg-white p-6 sm:p-8 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+                    <div class="border-b border-zinc-100 pb-3 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-lg font-bold text-zinc-900">Mode Penugasan</h2>
+                            <p class="text-xs text-zinc-500">Pilih apakah tugas ini dikerjakan mandiri atau secara berkelompok.</p>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $assignment_mode === 'group' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-zinc-100 text-zinc-700' }}">
+                            {{ $assignment_mode === 'group' ? 'Mode Kelompok' : 'Mode Individu' }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Pilihan Individu -->
+                        <label class="flex items-start gap-3 p-4 rounded-xl border {{ $assignment_mode === 'individual' ? 'border-[#2347C4] bg-blue-50/30 ring-1 ring-[#2347C4]' : 'border-zinc-200 bg-zinc-50/50 hover:bg-white' }} cursor-pointer transition-all">
+                            <input type="radio" wire:model.live="assignment_mode" value="individual" class="mt-1 text-[#2347C4] focus:ring-[#2347C4]">
+                            <div>
+                                <span class="text-sm font-bold text-zinc-900 block">Tugas Individu</span>
+                                <span class="text-xs text-zinc-500 leading-relaxed">Setiap siswa mengerjakan dan mengumpulkan tugasnya masing-masing secara mandiri.</span>
+                            </div>
+                        </label>
+
+                        <!-- Pilihan Kelompok -->
+                        <label class="flex items-start gap-3 p-4 rounded-xl border {{ $assignment_mode === 'group' ? 'border-[#2347C4] bg-blue-50/30 ring-1 ring-[#2347C4]' : 'border-zinc-200 bg-zinc-50/50 hover:bg-white' }} cursor-pointer transition-all">
+                            <input type="radio" wire:model.live="assignment_mode" value="group" class="mt-1 text-[#2347C4] focus:ring-[#2347C4]">
+                            <div>
+                                <span class="text-sm font-bold text-zinc-900 block flex items-center gap-1.5">
+                                    <span>Tugas Kelompok</span>
+                                    <span class="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">Kolaboratif</span>
+                                </span>
+                                <span class="text-xs text-zinc-500 leading-relaxed">Siswa membentuk tim, 1 ketua mengunggah tugas, guru dapat menilai per kelompok & override perorangan.</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    @if($assignment_mode === 'group')
+                        <div class="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-3">
+                            <div>
+                                <label for="max_group_members" class="text-sm font-bold text-zinc-900 block">Maksimal Anggota per Kelompok</label>
+                                <span class="text-xs text-zinc-500">Batas jumlah siswa yang dapat bergabung dalam satu kelompok (termasuk ketua).</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input 
+                                    type="number" 
+                                    id="max_group_members"
+                                    wire:model="max_group_members" 
+                                    min="2" 
+                                    max="20"
+                                    class="w-20 px-3 py-1.5 text-center text-sm font-bold bg-white border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2347C4]/20"
+                                >
+                                <span class="text-xs font-semibold text-zinc-600">Siswa</span>
+                            </div>
+                        </div>
+                        @error('max_group_members') <span class="text-xs text-rose-500 block">{{ $message }}</span> @enderror
+                    @endif
+                </div>
             </div>
 
             <!-- Right Sidebar Column (1 col) -->

@@ -140,7 +140,6 @@ class CurriculumManagement extends Component
         $tps = [];
         if ($this->selectedElementId) {
             $tps = LearningObjective::where('element_id', $this->selectedElementId)
-                                    ->where('is_template', true)
                                     ->orderBy('sort_order')
                                     ->get();
         }

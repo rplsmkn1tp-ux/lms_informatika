@@ -133,3 +133,47 @@ test('purifier cleans malicious scripts from lesson content', function () {
     $response->assertSee('Aman');
     $response->assertDontSee('<script>alert("XSS")</script>', false);
 });
+
+test('guru can access lesson preview and interact with tabs, notes, and discussions', function () {
+    $this->lesson->classrooms()->attach($this->classroom->id);
+
+    // 1. Teacher accesses preview
+    $response = $this->actingAs($this->teacher)
+        ->get(route('guru.lessons.preview', $this->lesson->id));
+
+    $response->assertStatus(200);
+    $response->assertSee('Alur Belajar Siswa');
+    $response->assertSee('Diskusi Kelas');
+    $response->assertSee('Catatan Pribadi');
+
+    // 2. Teacher saves a personal note
+    Livewire::actingAs($this->teacher)
+        ->test(MateriDetail::class, ['lesson' => $this->lesson])
+        ->set('noteBody', 'Catatan penting guru untuk materi ini')
+        ->call('saveNote')
+        ->assertHasNoErrors();
+
+    expect(\App\Models\Note::where('student_id', $this->teacher->id)->where('lesson_id', $this->lesson->id)->value('body'))
+        ->toBe('Catatan penting guru untuk materi ini');
+
+    // 3. Teacher sends discussion and replies
+    Livewire::actingAs($this->teacher)
+        ->test(MateriDetail::class, ['lesson' => $this->lesson])
+        ->set('discussionBody', 'Pertanyaan pemantik untuk siswa')
+        ->call('sendDiscussion')
+        ->assertHasNoErrors();
+
+    $disc = \App\Models\Discussion::where('lesson_id', $this->lesson->id)->where('user_id', $this->teacher->id)->first();
+    expect($disc)->not->toBeNull();
+
+    Livewire::actingAs($this->teacher)
+        ->test(MateriDetail::class, ['lesson' => $this->lesson])
+        ->call('startReply', $disc->id)
+        ->set('replyBody', 'Tanggapan guru')
+        ->call('sendReply', $disc->id)
+        ->assertHasNoErrors();
+
+    $reply = \App\Models\Discussion::where('parent_id', $disc->id)->first();
+    expect($reply)->not->toBeNull();
+    expect($reply->body)->toBe('Tanggapan guru');
+});

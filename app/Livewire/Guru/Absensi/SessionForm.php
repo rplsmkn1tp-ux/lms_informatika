@@ -90,12 +90,14 @@ class SessionForm extends Component
             'edit_reason' => $this->mode === 'edit_closed' ? 'required|string|min:5' : 'nullable'
         ]);
 
+        $formattedDate = Carbon::parse($this->meeting_date)->format('Y-m-d');
+
         if ($this->mode === 'create') {
             $this->session = AttendanceSession::create([
                 'classroom_id' => $this->classroom->id,
                 'teacher_id' => Auth::id(),
                 'academic_year_id' => $this->classroom->academic_year_id,
-                'meeting_date' => $this->meeting_date,
+                'meeting_date' => $formattedDate,
                 'meeting_no' => $this->meeting_no,
                 'topic' => $this->topic,
                 'status' => 'open',
@@ -103,22 +105,29 @@ class SessionForm extends Component
             ]);
         } else {
             $this->session->update([
-                'meeting_date' => $this->meeting_date,
+                'meeting_date' => $formattedDate,
                 'meeting_no' => $this->meeting_no,
                 'topic' => $this->topic,
                 'edit_reason' => $this->mode === 'edit_closed' ? $this->edit_reason : $this->session->edit_reason,
             ]);
         }
 
-        foreach ($this->students as $student) {
+        $students = $this->classroom->students()->get();
+        foreach ($students as $student) {
+            $studentId = is_object($student) ? $student->id : $student['id'];
+            $status = strtolower($this->attendance[$studentId] ?? 'hadir');
+            if (!in_array($status, ['hadir', 'izin', 'sakit', 'alpa'])) {
+                $status = 'hadir';
+            }
+
             AttendanceRecord::updateOrCreate(
                 [
                     'session_id' => $this->session->id,
-                    'student_id' => $student->id,
+                    'student_id' => $studentId,
                 ],
                 [
-                    'status' => $this->attendance[$student->id] ?? 'hadir',
-                    'note' => $this->notes[$student->id] ?? null,
+                    'status' => $status,
+                    'note' => $this->notes[$studentId] ?? null,
                     'marked_by' => Auth::id(),
                     'marked_at' => now(),
                 ]

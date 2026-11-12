@@ -20,13 +20,13 @@
     </x-siswa.page-header>
 
     <!-- Filter Tahun Ajaran & Kelas -->
-    <div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 18px; padding: 18px 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
-        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; flex: 1 1 360px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 18px; padding: 18px 22px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; flex: 1 1 360px">
             <div style="min-width: 200px; flex: 1">
                 <label style="display: block; font-size: 12px; font-weight: 700; color: #4A515C; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em">Tahun Ajaran & Semester</label>
                 <select 
                     wire:model.live="selectedYear" 
-                    style="width: 100%; border: 1px solid #E2E4DF; border-radius: 10px; padding: 9px 14px; font-size: 14px; font-weight: 600; color: #15191F; background: #F4F5F2; outline: none; cursor: pointer"
+                    style="width: 100%; height: 42px; border: 1px solid #E2E4DF; border-radius: 10px; padding: 0 14px; font-size: 14px; font-weight: 600; color: #15191F; background: #F4F5F2; outline: none; cursor: pointer; box-sizing: border-box"
                 >
                     @foreach($academicYears as $year)
                         <option value="{{ $year->id }}">
@@ -40,7 +40,7 @@
                 <label style="display: block; font-size: 12px; font-weight: 700; color: #4A515C; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em">Kelas Siswa</label>
                 <select 
                     wire:model.live="selectedClass" 
-                    style="width: 100%; border: 1px solid #E2E4DF; border-radius: 10px; padding: 9px 14px; font-size: 14px; font-weight: 600; color: #15191F; background: #F4F5F2; outline: none; cursor: pointer"
+                    style="width: 100%; height: 42px; border: 1px solid #E2E4DF; border-radius: 10px; padding: 0 14px; font-size: 14px; font-weight: 600; color: #15191F; background: #F4F5F2; outline: none; cursor: pointer; box-sizing: border-box"
                 >
                     @if($classrooms->isEmpty())
                         <option value="">Belum terdaftar di kelas</option>
@@ -54,7 +54,7 @@
         </div>
 
         @if($classroom)
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4A515C; background: #F4F5F2; padding: 8px 14px; border-radius: 10px; border: 1px solid #E2E4DF">
+            <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #4A515C; background: #F4F5F2; height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid #E2E4DF; box-sizing: border-box; align-self: flex-end; white-space: nowrap">
                 <span style="font-weight: 700; color: #15191F">Status Kelas:</span>
                 <span>{{ $classroom->name }}</span>
                 <span style="color: #A1A1AA">•</span>

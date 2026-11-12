@@ -12,21 +12,31 @@
                 <flux:heading size="lg">Identitas Aplikasi</flux:heading>
                 
                 <div class="flex flex-col gap-4">
-                    <label class="text-sm font-semibold text-zinc-900 dark:text-white">Logo Aplikasi</label>
+                    <div>
+                        <label class="text-sm font-semibold text-zinc-900 dark:text-white">Logo Aplikasi</label>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Gunakan logo persegi, latar transparan, dan minim ruang kosong di tepi.</p>
+                    </div>
+
                     <div class="flex items-center gap-4">
-                        @if ($logo)
+                        @if ($trimmedPreviewData)
+                            <!-- Pratinjau Hasil Auto-Trim baru -->
+                            <div class="relative w-20 h-20 rounded-2xl bg-white dark:bg-stone-800 border border-blue-300 dark:border-blue-700 shadow-md flex items-center justify-center overflow-hidden p-0 shrink-0 ring-2 ring-blue-500/20" style="isolation: isolate;">
+                                <img src="{{ $trimmedPreviewData }}" alt="Pratinjau Hasil Auto-Trim" class="w-full h-full object-cover rounded-[inherit]">
+                                <span class="absolute bottom-0 inset-x-0 bg-blue-600/90 text-white text-[9px] font-bold text-center py-0.5 uppercase tracking-wider">Trimmed</span>
+                            </div>
+                        @elseif ($logo)
                             <!-- Preview upload baru -->
-                            <div class="w-16 h-16 rounded-xl bg-white border border-zinc-200 shadow-sm flex items-center justify-center overflow-hidden">
-                                <img src="{{ $logo->temporaryUrl() }}" alt="Preview Baru" class="w-full h-full object-contain">
+                            <div class="w-20 h-20 rounded-2xl bg-white dark:bg-stone-800 border border-zinc-200 dark:border-stone-700 shadow-sm flex items-center justify-center overflow-hidden p-0 shrink-0" style="isolation: isolate;">
+                                <img src="{{ $logo->temporaryUrl() }}" alt="Preview Baru" class="w-full h-full object-cover rounded-[inherit]">
                             </div>
                         @elseif ($currentLogoUrl)
                             <!-- Logo tersimpan -->
-                            <div class="w-16 h-16 rounded-xl bg-white border border-zinc-200 shadow-sm flex items-center justify-center overflow-hidden">
-                                <img src="{{ asset('storage/' . $currentLogoUrl) }}?v={{ time() }}" alt="Logo Aplikasi" class="w-full h-full object-contain">
+                            <div class="w-20 h-20 rounded-2xl bg-white dark:bg-stone-800 border border-zinc-200 dark:border-stone-700 shadow-sm flex items-center justify-center overflow-hidden p-0 shrink-0" style="isolation: isolate;">
+                                <img src="{{ asset('storage/' . $currentLogoUrl) }}?v={{ time() }}" alt="Logo Aplikasi" class="w-full h-full object-cover rounded-[inherit]">
                             </div>
                         @else
                             <!-- Logo default -->
-                            <div class="w-16 h-16 rounded-xl bg-[#2347C4] text-white flex items-center justify-center font-mono font-bold text-xl">
+                            <div class="w-20 h-20 rounded-2xl bg-[#2347C4] text-white flex items-center justify-center font-mono font-bold text-2xl shadow-sm shrink-0">
                                 { }
                             </div>
                         @endif
@@ -34,19 +44,19 @@
                         <div class="flex flex-col gap-2">
                             <div class="flex items-center gap-2">
                                 <input type="file" wire:model="logo" id="logoUpload" class="hidden" accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp">
-                                <label for="logoUpload" class="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors">
+                                <label for="logoUpload" class="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-900/60 rounded-xl transition-colors">
                                     <flux:icon.arrow-up-tray class="w-4 h-4" />
                                     Pilih Logo Baru
                                 </label>
                                 
                                 @if($currentLogoUrl)
-                                    <button type="button" wire:click="removeLogo" wire:confirm="Anda yakin ingin mengembalikan logo ke default?" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors">
+                                    <button type="button" wire:click="removeLogo" wire:confirm="Anda yakin ingin mengembalikan logo ke default?" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60 rounded-xl transition-colors">
                                         Hapus
                                     </button>
                                 @endif
                             </div>
-                            <span class="text-xs text-zinc-500">Maks. 2MB (PNG, JPG, SVG, WebP)</span>
-                            <div wire:loading wire:target="logo" class="text-xs text-blue-600">Mengunggah preview...</div>
+                            <span class="text-xs text-zinc-500 dark:text-zinc-400">Maks. 2MB (PNG, JPG, SVG, WebP). Area kosong di sekeliling logo akan otomatis di-trim.</span>
+                            <div wire:loading wire:target="logo" class="text-xs text-blue-600 font-medium animate-pulse">Memproses & mengoptimasi pratinjau logo...</div>
                         </div>
                     </div>
                     @error('logo') <span class="text-sm text-red-600">{{ $message }}</span> @enderror

@@ -159,6 +159,6 @@
             </flux:toast.group>
         @endpersist
 
-        
+        @fluxScripts
     </body>
 </html>

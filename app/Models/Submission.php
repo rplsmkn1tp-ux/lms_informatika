@@ -14,7 +14,7 @@ class Submission extends Model
     public const STATUS_REVISION = 'perlu_revisi';
 
     protected $fillable = [
-        'assessment_id', 'student_id', 'attempt', 'started_at', 'submitted_at',
+        'assessment_id', 'assessment_group_id', 'student_id', 'attempt', 'started_at', 'submitted_at',
         'file_path', 'text_content', 'link_url', 'is_late', 'score', 'status', 'feedback', 'graded_by',
     ];
 
@@ -86,6 +86,11 @@ class Submission extends Model
     public function assessment(): BelongsTo
     {
         return $this->belongsTo(Assessment::class);
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentGroup::class, 'assessment_group_id');
     }
 
     public function student(): BelongsTo

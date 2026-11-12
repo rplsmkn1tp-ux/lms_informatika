@@ -1,5 +1,5 @@
-<div x-data="{ open: false }" class="relative inline-block text-left">
-    <button @click="open = !open" @click.outside="open = false" aria-label="Menu akun" style="width: 44px; height: 44px; flex: none; border-radius: 99px; border: 0; background: #F2A93B; color: #15191F; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center">
+<div x-data="{ open: false }" @click.outside="open = false" class="relative inline-block text-left">
+    <button type="button" @click="open = !open" aria-label="Menu akun" style="width: 44px; height: 44px; flex: none; border-radius: 99px; border: 0; background: #F2A93B; color: #15191F; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center">
         {{ auth()->user()->initials() }}
     </button>
 

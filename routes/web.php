@@ -6,6 +6,17 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
+Route::match(['get', 'post'], 'logout', function (\Illuminate\Http\Request $request) {
+    \Illuminate\Support\Facades\Auth::guard('web')->logout();
+
+    if ($request->hasSession()) {
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+    }
+
+    return redirect('/');
+})->name('logout');
+
 Route::middleware(['auth', 'verified', 'active'])->group(function () {
     Route::get('dashboard', function() {
         $role = auth()->user()->role;
@@ -38,6 +49,8 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::get('tp', \App\Livewire\Guru\TpManagement::class)->name('tp');
         Route::get('materi', \App\Livewire\Guru\LessonManagement::class)->name('lessons');
         Route::get('materi/{lesson}/terbitkan', \App\Livewire\Guru\LessonPublish::class)->name('lessons.publish');
+        Route::get('materi/{lesson}/pratinjau', \App\Livewire\Siswa\Belajar\MateriDetail::class)->name('lessons.preview');
+        Route::get('materi/{lesson}', \App\Livewire\Siswa\Belajar\MateriDetail::class)->name('lessons.show');
 
         Route::get('absensi', \App\Livewire\Guru\Absensi\Index::class)->name('absensi.index');
         Route::get('absensi/{classroom}/sesi', \App\Livewire\Guru\Absensi\SessionManager::class)->name('absensi.session');
@@ -58,6 +71,10 @@ Route::middleware(['auth', 'verified', 'active'])->group(function () {
         Route::get('tugas/{assessment}/detail', \App\Livewire\Guru\Tugas\Detail::class)->name('tugas.detail');
         Route::get('tugas/{assessment}/download-zip', [\App\Http\Controllers\Guru\TugasExportController::class, 'downloadZip'])->name('tugas.download-zip');
     });
+
+    // Rute akses materi PDF privat (aman dengan otorisasi hak akses controller)
+    Route::get('materi/{lesson}/attachment/{attachment}/stream', [\App\Http\Controllers\LessonAttachmentController::class, 'streamPdf'])->name('materi.attachment.stream');
+    Route::get('materi/{lesson}/attachment/{attachment}/download', [\App\Http\Controllers\LessonAttachmentController::class, 'downloadPdf'])->name('materi.attachment.download');
 
     // Rute unduh lampiran dan file jawaban (aman dengan validasi hak akses di controller)
     Route::get('tugas/{assessment}/attachment/{index}', [\App\Http\Controllers\Guru\TugasExportController::class, 'downloadTeacherAttachment'])->name('guru.tugas.download-attachment');

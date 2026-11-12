@@ -62,9 +62,17 @@
             >
                 <!-- Header Card: Status & Max Score -->
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border {{ $assessment->userBadgeClass }}">
-                        {{ $assessment->userStatusLabel }}
-                    </span>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border {{ $assessment->userBadgeClass }}">
+                            {{ $assessment->userStatusLabel }}
+                        </span>
+                        @if($assessment->isGroup())
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                Kelompok (Maks. {{ $assessment->max_group_members ?? 4 }})
+                            </span>
+                        @endif
+                    </div>
                     <span style="font-size: 12px; font-weight: 700; color: #4A515C; font-family: 'JetBrains Mono', monospace;">
                         Max: {{ $assessment->max_score }}
                     </span>

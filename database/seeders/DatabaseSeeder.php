@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
             'weekly_lesson_target' => 5
         ]);
 
-        if (app()->environment('local')) {
+        if (app()->environment('local', 'testing')) {
             // Guru
             $guru = User::create([
                 'name' => 'Guru Budi',

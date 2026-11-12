@@ -6,6 +6,7 @@ use App\Models\AcademicYear;
 use App\Models\TeachingAssignment;
 use App\Models\LearningObjective;
 use App\Models\Element;
+use App\Models\Assessment;
 use Livewire\Livewire;
 use App\Livewire\Guru\TpManagement;
 use App\Livewire\Guru\ClassroomDetail;
@@ -207,7 +208,9 @@ test('guru can create and save new lesson', function () {
 
     Livewire::actingAs($this->guru)
         ->test(LessonManagement::class)
+        ->set('element_id', $this->element->id)
         ->set('learning_objective_id', $tp->id)
+        ->set('selectedClassrooms', [$this->classroom->id])
         ->set('code', 'L-1')
         ->set('title', 'Test Lesson')
         ->set('summary', 'Desc')
@@ -365,6 +368,40 @@ test('guru can delete their own assessment', function () {
     $this->assertDatabaseMissing('assessments', ['id' => $assessment->id]);
 });
 
+test('guru can delete tugas from index even if submissions exist', function () {
+    $element = Element::create(['code' => 'AD', 'name' => 'Analisis Data']);
+    $tp = LearningObjective::create([
+        'element_id' => $element->id,
+        'code' => 'AD-1',
+        'title' => 'Analisis Data 1',
+        'created_by' => $this->guru->id
+    ]);
+
+    $tugas = Assessment::create([
+        'learning_objective_id' => $tp->id,
+        'title' => 'Tugas dengan submission',
+        'type' => 'tugas',
+        'status' => 'published',
+        'created_by' => $this->guru->id
+    ]);
+
+    // Dummy submission
+    \App\Models\Submission::create([
+        'assessment_id' => $tugas->id,
+        'student_id' => $this->siswa->id,
+        'status' => \App\Models\Submission::STATUS_SUBMITTED,
+        'submitted_at' => now(),
+    ]);
+
+    Livewire::actingAs($this->guru)
+        ->test(\App\Livewire\Guru\Tugas\Index::class)
+        ->call('delete', $tugas->id)
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseMissing('assessments', ['id' => $tugas->id]);
+    $this->assertDatabaseMissing('submissions', ['assessment_id' => $tugas->id]);
+});
+
 test('guru can grade submission of their own student', function () {
     // Setup
     TeachingAssignment::create([
@@ -464,3 +501,52 @@ test('guru cannot grade submission of student from other classroom', function ()
         ->call('openGradingModal', $submission->id)
         ->assertForbidden();
 });
+
+test('tp management supports dropdown filter and groups by element BK and LD', function () {
+    $elementLd = Element::firstOrCreate(
+        ['code' => 'LD'],
+        ['name' => 'Literasi Digital', 'description' => 'LD desc']
+    );
+
+    LearningObjective::create([
+        'element_id' => $this->element->id, // BK
+        'code' => 'BK-1',
+        'title' => 'Algoritma Pemrograman',
+        'sort_order' => 1,
+        'kktp' => 75,
+        'is_template' => false,
+        'created_by' => $this->guru->id
+    ]);
+
+    LearningObjective::create([
+        'element_id' => $elementLd->id, // LD
+        'code' => 'LD-1',
+        'title' => 'Pencarian Informasi',
+        'sort_order' => 1,
+        'kktp' => 75,
+        'is_template' => false,
+        'created_by' => $this->guru->id
+    ]);
+
+    $component = Livewire::actingAs($this->guru)
+        ->test(TpManagement::class)
+        ->assertOk()
+        ->assertSee('BK-1')
+        ->assertSee('LD-1');
+
+    // Filter to BK
+    $component->set('selectedElement', $this->element->id)
+        ->assertSee('Algoritma Pemrograman')
+        ->assertDontSee('Pencarian Informasi');
+
+    // Filter to LD
+    $component->set('selectedElement', $elementLd->id)
+        ->assertSee('Pencarian Informasi')
+        ->assertDontSee('Algoritma Pemrograman');
+
+    // Test create with element pre-selected
+    $component->call('create', $this->element->id);
+    expect($component->get('element_id'))->toBe($this->element->id);
+    expect($component->get('code'))->toStartWith('BK-');
+});
+

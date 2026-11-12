@@ -20,17 +20,10 @@
                 
                 <!-- Branding Header -->
                 <a href="{{ route('home') }}" class="flex flex-col items-center text-center gap-4 transition-transform hover:scale-[1.02] duration-300 group" wire:navigate>
-                    <!-- Kartu logo luar: sekitar 128 x 128 px, putih, sudut membulat (rounded-3xl), bayangan lembut, padding sekitar 16 px -->
-                    <div class="w-32 h-32 rounded-3xl bg-white dark:bg-stone-800 shadow-md shadow-slate-200/50 dark:shadow-stone-950/50 border border-slate-200/80 dark:border-stone-700/80 p-4 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:shadow-xl"
-                         style="width: 128px; height: 128px; max-width: 128px; max-height: 128px; box-sizing: border-box; flex-shrink: 0;">
-                        <!-- Kotak logo dalam: sekitar 96 x 96 px, rounded-2xl, latar gradasi (via x-app-logo-icon size="lg") -->
-                        <x-app-logo-icon size="lg" />
-                    </div>
+                    <!-- Single logo card with rounded corners and soft shadow, logo fills frame with ~4% margin -->
+                    <x-app-logo-icon size="lg" class="transition-all duration-300 group-hover:shadow-xl group-hover:scale-[1.02]" />
                     
                     <div class="space-y-1.5 flex flex-col items-center">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                            LMS Informatika
-                        </span>
                         <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                             {{ \App\Models\Setting::getValue('app_name', 'Ruang Informatika') }}
                         </h1>
@@ -72,15 +65,9 @@
                 
                 <!-- Mobile Branding Header (Hanya tampil di layar kecil/HP) -->
                 <a href="{{ route('home') }}" class="flex lg:hidden flex-col items-center gap-3 font-medium mb-6 text-center" wire:navigate>
-                    <!-- Mobile logo card: sekitar 80 x 80 px -->
-                    <div class="w-20 h-20 rounded-2xl bg-white dark:bg-stone-800 shadow-md border border-slate-200/80 dark:border-stone-700 p-2.5 flex items-center justify-center shrink-0"
-                         style="width: 80px; height: 80px; max-width: 80px; max-height: 80px; box-sizing: border-box; flex-shrink: 0;">
-                        <x-app-logo-icon size="mobile" />
-                    </div>
+                    <!-- Mobile logo card -->
+                    <x-app-logo-icon size="mobile" />
                     <div class="space-y-1">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                            LMS Informatika
-                        </span>
                         <span class="text-lg font-bold text-slate-900 dark:text-white block">
                             {{ \App\Models\Setting::getValue('app_name', 'Ruang Informatika') }}
                         </span>
@@ -101,5 +88,7 @@
                 <flux:toast />
             </flux:toast.group>
         @endpersist
+
+        @fluxScripts
     </body>
 </html>

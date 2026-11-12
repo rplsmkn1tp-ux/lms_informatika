@@ -3,6 +3,7 @@
 namespace App\Livewire\Guru\Tugas;
 
 use App\Models\Assessment;
+use App\Models\AssessmentGroup;
 use App\Models\Classroom;
 use App\Models\Submission;
 use App\Models\User;
@@ -20,12 +21,15 @@ class Detail extends Component
 
     public Assessment $assessment;
 
+    // Tabs
+    public string $activeTab = 'siswa';
+
     // Filters
     public ?int $selectedClassroomId = null;
     public string $statusFilter = '';
     public string $search = '';
 
-    // Grading Modal
+    // Grading Modal (Individual)
     public bool $showGradingModal = false;
     public ?int $selectedStudentId = null;
     public ?User $selectedStudent = null;
@@ -33,6 +37,20 @@ class Detail extends Component
     public $submissionHistory = [];
     public $score = null;
     public string $feedback = '';
+
+    // Group Grading Modal
+    public bool $showGroupGradingModal = false;
+    public ?int $selectedGroupId = null;
+    public ?AssessmentGroup $selectedGroup = null;
+    public ?Submission $groupLeaderSubmission = null;
+    public $groupDefaultScore = null;
+    public array $memberScores = [];
+    public array $memberFeedbacks = [];
+    public string $groupFeedback = '';
+
+    // Absent / Unassigned Student Assignment
+    public ?int $selectedUnassignedStudentId = null;
+    public ?int $targetGroupId = null;
 
     public function mount(Assessment $assessment)
     {
@@ -42,6 +60,7 @@ class Detail extends Component
         }
 
         $this->assessment = $assessment;
+        $this->activeTab = $assessment->isGroup() ? 'kelompok' : 'siswa';
         // Default ke null agar langsung menampilkan 'Semua Kelas'
         $this->selectedClassroomId = null;
     }
@@ -170,6 +189,262 @@ class Detail extends Component
         $this->closeGradingModal();
     }
 
+    public function switchTab(string $tab)
+    {
+        $this->activeTab = $tab;
+        $this->resetPage();
+    }
+
+    public function openGroupGradingModal(int $groupId)
+    {
+        $group = AssessmentGroup::with(['members', 'leader', 'submissions' => function ($q) {
+            $q->orderByDesc('attempt')->orderByDesc('id');
+        }])->findOrFail($groupId);
+
+        $this->selectedGroupId = $groupId;
+        $this->selectedGroup = $group;
+
+        $leaderSub = $group->submissions()->where('student_id', $group->leader_id)->latest('attempt')->first()
+            ?? $group->submissions()->latest('attempt')->first();
+
+        $this->groupLeaderSubmission = $leaderSub;
+
+        $this->memberScores = [];
+        $this->memberFeedbacks = [];
+        $existingScores = [];
+
+        foreach ($group->members as $member) {
+            $memSub = $group->submissions()->where('student_id', $member->id)->latest('attempt')->first();
+            $this->memberScores[$member->id] = $memSub?->score !== null ? (float)$memSub->score : ($leaderSub?->score !== null ? (float)$leaderSub->score : null);
+            $this->memberFeedbacks[$member->id] = $memSub?->feedback ?? '';
+            if ($this->memberScores[$member->id] !== null) {
+                $existingScores[] = $this->memberScores[$member->id];
+            }
+        }
+
+        $this->groupDefaultScore = count($existingScores) > 0 ? $existingScores[0] : null;
+        $this->groupFeedback = $leaderSub?->feedback ?? '';
+        $this->showGroupGradingModal = true;
+    }
+
+    public function updatedGroupDefaultScore($value)
+    {
+        if ($this->selectedGroup && is_numeric($value)) {
+            foreach ($this->selectedGroup->members as $member) {
+                $this->memberScores[$member->id] = (float)$value;
+            }
+        }
+    }
+
+    public function applyDefaultScoreToAll()
+    {
+        if ($this->groupDefaultScore !== null && $this->selectedGroup) {
+            foreach ($this->selectedGroup->members as $member) {
+                $this->memberScores[$member->id] = (float)$this->groupDefaultScore;
+            }
+        }
+    }
+
+    public function closeGroupGradingModal()
+    {
+        $this->showGroupGradingModal = false;
+        $this->reset([
+            'selectedGroupId',
+            'selectedGroup',
+            'groupLeaderSubmission',
+            'groupDefaultScore',
+            'memberScores',
+            'memberFeedbacks',
+            'groupFeedback',
+        ]);
+    }
+
+    public function saveGroupGrade()
+    {
+        if (!$this->selectedGroup) return;
+
+        $maxScore = $this->assessment->max_score ?? 100;
+        
+        $rules = [];
+        $messages = [];
+        foreach ($this->selectedGroup->members as $member) {
+            $rules["memberScores.{$member->id}"] = "required|numeric|min:0|max:{$maxScore}";
+            $messages["memberScores.{$member->id}.required"] = "Nilai untuk {$member->name} wajib diisi.";
+            $messages["memberScores.{$member->id}.numeric"] = "Nilai untuk {$member->name} harus berupa angka.";
+            $messages["memberScores.{$member->id}.min"] = "Nilai untuk {$member->name} minimal 0.";
+            $messages["memberScores.{$member->id}.max"] = "Nilai untuk {$member->name} tidak boleh melebihi {$maxScore}.";
+        }
+
+        $this->validate($rules, $messages);
+
+        $leaderSub = $this->groupLeaderSubmission;
+        $attempt = $leaderSub ? $leaderSub->attempt : 1;
+        $submittedAt = $leaderSub?->submitted_at ?? now();
+        $filePath = $leaderSub?->file_path;
+        $textContent = $leaderSub?->text_content;
+        $linkUrl = $leaderSub?->link_url;
+        $isLate = (bool) ($leaderSub?->is_late);
+
+        $tpIds = $this->assessment->getAllLearningObjectiveIds();
+
+        foreach ($this->selectedGroup->members as $member) {
+            $mScore = $this->memberScores[$member->id];
+            $mFeedback = trim($this->memberFeedbacks[$member->id] ?? '') ?: $this->groupFeedback;
+            $memberClassroomId = $this->selectedGroup->classroom_id ?: ($member->classrooms()->first()?->id ?: $this->selectedClassroomId);
+
+            $sub = Submission::updateOrCreate(
+                [
+                    'assessment_id' => $this->assessment->id,
+                    'student_id' => $member->id,
+                ],
+                [
+                    'assessment_group_id' => $this->selectedGroup->id,
+                    'attempt' => $attempt,
+                    'file_path' => $filePath,
+                    'text_content' => $textContent,
+                    'link_url' => $linkUrl,
+                    'is_late' => $isLate,
+                    'status' => Submission::STATUS_GRADED,
+                    'score' => $mScore,
+                    'feedback' => $mFeedback,
+                    'graded_by' => auth()->id(),
+                    'started_at' => $leaderSub?->started_at ?? now(),
+                    'submitted_at' => $submittedAt,
+                ]
+            );
+
+            if (!empty($tpIds) && $memberClassroomId) {
+                foreach ($tpIds as $tpId) {
+                    try {
+                        app(ObjectiveMasteryService::class)->updateMastery($member->id, $tpId, $memberClassroomId);
+                    } catch (\Exception $e) {}
+                }
+            }
+
+            if ($memberClassroomId) {
+                try {
+                    app(\App\Services\GradeBookSyncService::class)->syncSubmission($sub, $memberClassroomId);
+                } catch (\Exception $e) {}
+            }
+        }
+
+        session()->flash('success', "Nilai untuk kelompok '{$this->selectedGroup->name}' berhasil disimpan.");
+        $this->closeGroupGradingModal();
+    }
+
+    public function requestGroupRevision()
+    {
+        if (!$this->selectedGroup) return;
+
+        foreach ($this->selectedGroup->members as $member) {
+            $sub = Submission::where('assessment_id', $this->assessment->id)
+                ->where('student_id', $member->id)
+                ->latest('attempt')
+                ->first();
+
+            if ($sub) {
+                $sub->update([
+                    'status' => Submission::STATUS_REVISION,
+                    'feedback' => $this->groupFeedback ?: 'Silakan perbaiki jawaban kelompok Anda dan kumpulkan kembali.',
+                    'graded_by' => auth()->id(),
+                ]);
+            }
+        }
+
+        session()->flash('success', "Permintaan revisi berhasil dikirim ke kelompok '{$this->selectedGroup->name}'.");
+        $this->closeGroupGradingModal();
+    }
+
+    public function assignStudentToGroup(?int $studentId = null, ?int $groupId = null)
+    {
+        $studentId = $studentId ?? $this->selectedUnassignedStudentId;
+        $groupId = $groupId ?? $this->targetGroupId;
+
+        if (!$studentId || !$groupId) {
+            session()->flash('error', 'Pilih siswa dan kelompok tujuan terlebih dahulu.');
+            return;
+        }
+
+        $group = AssessmentGroup::with('members')->findOrFail($groupId);
+        $student = User::findOrFail($studentId);
+
+        $max = $this->assessment->max_group_members ?? 4;
+        if ($group->members()->count() >= $max) {
+            session()->flash('error', "Kelompok '{$group->name}' sudah mencapai kapasitas maksimal ({$max} anggota).");
+            return;
+        }
+
+        $otherGroups = AssessmentGroup::where('assessment_id', $this->assessment->id)
+            ->whereHas('members', fn($q) => $q->where('users.id', $studentId))
+            ->get();
+
+        foreach ($otherGroups as $og) {
+            $og->members()->detach($studentId);
+        }
+
+        $group->members()->syncWithoutDetaching([$studentId]);
+
+        $leaderSub = $group->submissions()->latest('attempt')->first();
+        if ($leaderSub) {
+            Submission::updateOrCreate(
+                [
+                    'assessment_id' => $this->assessment->id,
+                    'student_id' => $studentId,
+                ],
+                [
+                    'assessment_group_id' => $group->id,
+                    'attempt' => $leaderSub->attempt,
+                    'file_path' => $leaderSub->file_path,
+                    'text_content' => $leaderSub->text_content,
+                    'link_url' => $leaderSub->link_url,
+                    'is_late' => $leaderSub->is_late,
+                    'status' => $leaderSub->status,
+                    'score' => $leaderSub->score,
+                    'feedback' => $leaderSub->feedback,
+                    'graded_by' => $leaderSub->graded_by,
+                    'started_at' => $leaderSub->started_at,
+                    'submitted_at' => $leaderSub->submitted_at,
+                ]
+            );
+        }
+
+        $this->reset(['selectedUnassignedStudentId', 'targetGroupId']);
+        session()->flash('success', "Siswa {$student->name} berhasil dimasukkan ke kelompok '{$group->name}'.");
+    }
+
+    public function removeStudentFromGroupTeacher(int $studentId, int $groupId)
+    {
+        $group = AssessmentGroup::findOrFail($groupId);
+        $student = User::findOrFail($studentId);
+
+        $group->members()->detach($studentId);
+
+        Submission::where('assessment_id', $this->assessment->id)
+            ->where('student_id', $studentId)
+            ->where('status', '!=', Submission::STATUS_GRADED)
+            ->delete();
+
+        if ((int)$group->leader_id === (int)$studentId) {
+            $newLeader = $group->members()->first();
+            if ($newLeader) {
+                $group->update(['leader_id' => $newLeader->id]);
+            } else {
+                $group->delete();
+            }
+        }
+
+        if ($this->selectedGroup && $this->selectedGroup->id === $groupId) {
+            $this->selectedGroup = AssessmentGroup::with(['members', 'leader', 'submissions'])->find($groupId);
+            unset($this->memberScores[$studentId]);
+            unset($this->memberFeedbacks[$studentId]);
+            if (!$this->selectedGroup || $this->selectedGroup->members->isEmpty()) {
+                $this->closeGroupGradingModal();
+            }
+        }
+
+        session()->flash('success', "Siswa {$student->name} dikeluarkan dari kelompok.");
+    }
+
     public function render()
     {
         // Kumpulkan semua kelas penugasan + kelas dari siswa yang sudah mengumpulkan tugas ini
@@ -252,6 +527,45 @@ class Detail extends Component
 
         $averageScore = count($totalScores) > 0 ? round(array_sum($totalScores) / count($totalScores), 1) : 0;
 
+        // Data Kelompok (jika penugasan mode kelompok)
+        $groups = collect();
+        $unassignedStudents = collect();
+        $statTotalGroups = 0;
+        $statSubmittedGroups = 0;
+        $statGradedGroups = 0;
+
+        if ($this->assessment->isGroup()) {
+            $groupsQuery = AssessmentGroup::where('assessment_id', $this->assessment->id)
+                ->with([
+                    'classroom',
+                    'leader',
+                    'members',
+                    'submissions' => function ($q) {
+                        $q->orderByDesc('attempt')->orderByDesc('id');
+                    }
+                ]);
+
+            if ($this->selectedClassroomId) {
+                $groupsQuery->where('classroom_id', $this->selectedClassroomId);
+            }
+
+            $groups = $groupsQuery->orderBy('name')->get();
+            $statTotalGroups = $groups->count();
+
+            foreach ($groups as $grp) {
+                $sub = $grp->submissions->first();
+                if ($sub && in_array($sub->status, [Submission::STATUS_SUBMITTED, Submission::STATUS_GRADED, Submission::STATUS_REVISION])) {
+                    $statSubmittedGroups++;
+                    if ($sub->status === Submission::STATUS_GRADED) {
+                        $statGradedGroups++;
+                    }
+                }
+            }
+
+            $allAssignedIds = $groups->flatMap(fn($g) => $g->members->pluck('id'))->unique()->toArray();
+            $unassignedStudents = $allStudents->filter(fn($st) => !in_array($st->id, $allAssignedIds))->values();
+        }
+
         // Filter berdasarkan pencarian nama atau NISN
         $filteredStudents = $allStudents;
         if (!empty(trim($this->search))) {
@@ -321,6 +635,11 @@ class Detail extends Component
             'statLate' => $statLate,
             'statRevision' => $statRevision,
             'averageScore' => $averageScore,
+            'groups' => $groups,
+            'unassignedStudents' => $unassignedStudents,
+            'statTotalGroups' => $statTotalGroups,
+            'statSubmittedGroups' => $statSubmittedGroups,
+            'statGradedGroups' => $statGradedGroups,
         ]);
     }
 }

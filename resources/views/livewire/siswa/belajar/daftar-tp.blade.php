@@ -48,7 +48,7 @@
                                 </span>
                             </div>
                         @else
-                            <a href="{{ route('siswa.belajar.materi', ['element' => $element->code, 'tp' => $tp->code, 'lesson' => $lesson->code]) }}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 12px; background: {{ $isDone ? '#E8EDFC' : '#F6F7F4' }}; text-decoration: none; color: #15191F; border: 1px solid transparent;">
+                            <a href="{{ route('siswa.belajar.materi', ['element' => $element->code, 'tp' => $tp->code, 'lesson' => $lesson->code ?: $lesson->id]) }}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 12px; background: {{ $isDone ? '#E8EDFC' : '#F6F7F4' }}; text-decoration: none; color: #15191F; border: 1px solid transparent;">
                                 <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
                                     <span style="width: 36px; height: 36px; flex: none; border-radius: 99px; background: {{ $isDone ? '#2347C4' : '#C9CDC4' }}; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
                                         @if($isDone)

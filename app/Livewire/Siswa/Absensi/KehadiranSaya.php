@@ -14,7 +14,7 @@ class KehadiranSaya extends Component
     public function render(AttendanceService $service)
     {
         $student = Auth::user();
-        $classroom = $student->activeClassroom();
+        $classroom = $student->activeClassroom() ?? $student->classrooms()->first();
 
         $records = [];
         $percentage = 100;
@@ -23,16 +23,16 @@ class KehadiranSaya extends Component
         if ($classroom) {
             $records = AttendanceRecord::where('student_id', $student->id)
                 ->whereHas('session', function($q) use ($classroom) {
-                    $q->where('classroom_id', $classroom->id)
-                      ->where('academic_year_id', $classroom->academic_year_id)
-                      ->where('status', 'closed');
+                    $q->where('classroom_id', $classroom->id);
                 })
                 ->with('session')
                 ->get()
-                ->sortByDesc(fn($record) => $record->session->meeting_no);
+                ->sortByDesc(fn($record) => ($record->session?->meeting_date?->format('Ymd') ?? '') . str_pad((string)($record->session?->meeting_no ?? 0), 4, '0', STR_PAD_LEFT));
                 
             foreach ($records as $record) {
-                $summary[$record->status]++;
+                if (isset($summary[$record->status])) {
+                    $summary[$record->status]++;
+                }
             }
 
             $percentage = $service->getStudentAttendancePercentage($student->id, $classroom->id, $classroom->academic_year_id);

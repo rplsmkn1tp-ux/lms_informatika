@@ -35,6 +35,8 @@ class Form extends Component
     public ?int $meeting_no = null;
     public string $grade_group = 'tugas';
     public ?int $grade_seq = 1;
+    public string $assignment_mode = 'individual';
+    public int $max_group_members = 4;
 
     // Attachments
     public array $existingAttachments = [];
@@ -68,6 +70,8 @@ class Form extends Component
             $this->meeting_no = $assessment->meeting_no ?: $assessment->attendanceSession?->meeting_no;
             $this->grade_group = $assessment->grade_group ?: 'tugas';
             $this->grade_seq = $assessment->grade_seq ?: 1;
+            $this->assignment_mode = $assessment->assignment_mode ?: 'individual';
+            $this->max_group_members = $assessment->max_group_members ?: 4;
             $this->existingAttachments = $assessment->teacher_attachments ?? [];
         } else {
             $this->opens_at = Carbon::now('Asia/Jakarta')->format('Y-m-d\TH:i');
@@ -75,9 +79,24 @@ class Form extends Component
             // Default select all classrooms taught by teacher
             $this->selectedClassrooms = $teacher->taughtClassrooms()->pluck('classrooms.id')->map(fn($id) => (string) $id)->toArray();
             $this->grade_group = 'tugas';
+            $this->assignment_mode = 'individual';
+            $this->max_group_members = 4;
             $highestSeq = Assessment::where('type', 'tugas')->max('grade_seq') ?? 0;
             $this->grade_seq = max(1, $highestSeq + 1);
             $this->meeting_no = 1;
+
+            // Auto-fill from query parameter if creating task directly from a lesson
+            $queryLessonId = request()->query('lesson_id');
+            if ($queryLessonId) {
+                $linkedLesson = Lesson::with('learningObjective', 'classrooms')->find($queryLessonId);
+                if ($linkedLesson) {
+                    $this->lesson_id = (int) $linkedLesson->id;
+                    $this->learning_objective_id = (int) $linkedLesson->learning_objective_id;
+                    if ($linkedLesson->classrooms->isNotEmpty()) {
+                        $this->selectedClassrooms = $linkedLesson->classrooms->pluck('id')->map(fn($id) => (string) $id)->toArray();
+                    }
+                }
+            }
         }
     }
 
@@ -159,6 +178,8 @@ class Form extends Component
             'due_at' => 'nullable|date',
             'max_score' => 'required|integer|min:1|max:1000',
             'submission_types' => 'required|array|min:1',
+            'assignment_mode' => 'required|in:individual,group',
+            'max_group_members' => 'nullable|integer|min:2|max:20',
             'allow_late' => 'boolean',
             'allow_resubmit' => 'boolean',
             'lesson_id' => 'nullable|exists:lessons,id',
@@ -220,6 +241,8 @@ class Form extends Component
             'attendance_session_id' => $this->attendance_session_id,
             'meeting_no' => $this->meeting_no,
             'type' => 'tugas',
+            'assignment_mode' => $this->assignment_mode,
+            'max_group_members' => $this->assignment_mode === 'group' ? ($this->max_group_members ?: 4) : 4,
             'grade_group' => $this->grade_group ?: 'tugas',
             'grade_seq' => $this->grade_seq ? (int) $this->grade_seq : 1,
             'title' => $this->title,

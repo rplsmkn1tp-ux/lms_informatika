@@ -26,18 +26,34 @@ class DaftarTp extends Component
             ->pluck('teacher_id')
             ->toArray();
 
-        // Get TPs for this element created by those teachers
+        // Get TPs for this element created by those teachers or templates, or having lessons assigned to this classroom
         $tps = LearningObjective::where('element_id', $this->element->id)
-            ->whereIn('created_by', $teacherIds)
+            ->where(function ($q) use ($teacherIds, $classroomId) {
+                if (!empty($teacherIds)) {
+                    $q->whereIn('created_by', $teacherIds)
+                      ->orWhere('is_template', true);
+                } else {
+                    $q->where('is_template', true);
+                }
+
+                if ($classroomId) {
+                    $q->orWhereHas('lessons', function ($lq) use ($classroomId) {
+                        $lq->whereIn('status', ['published', 'scheduled'])
+                           ->whereHas('classrooms', function ($cq) use ($classroomId) {
+                               $cq->where('classrooms.id', $classroomId);
+                           });
+                    });
+                }
+            })
             ->orderBy('sort_order')
             ->with(['lessons' => function ($query) use ($classroomId) {
-                $query->where('status', 'published')
-                    ->with(['classrooms' => function ($q) use ($classroomId) {
-                        $q->where('classrooms.id', $classroomId);
-                    }])
+                $query->whereIn('status', ['published', 'scheduled'])
                     ->whereHas('classrooms', function ($q) use ($classroomId) {
                         $q->where('classrooms.id', $classroomId);
                     })
+                    ->with(['classrooms' => function ($q) use ($classroomId) {
+                        $q->where('classrooms.id', $classroomId);
+                    }])
                     ->orderBy('sort_order');
             }])
             ->get();

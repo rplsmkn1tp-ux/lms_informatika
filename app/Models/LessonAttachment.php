@@ -6,7 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class LessonAttachment extends Model
 {
-    protected $fillable = ['lesson_id', 'label', 'file_path', 'type'];
+    protected $fillable = ['lesson_id', 'label', 'file_path', 'type', 'sort_order', 'file_size'];
+    
+    protected function casts(): array
+    {
+        return [
+            'sort_order' => 'integer',
+            'file_size' => 'integer',
+        ];
+    }
 
     public function lesson()
     {

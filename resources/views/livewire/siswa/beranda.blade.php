@@ -82,7 +82,7 @@
                 </div>
                 
                 @if($lastProgress && $lastProgress->lesson && $lastProgress->lesson->learningObjective)
-                <a href="{{ route('siswa.belajar.materi', ['element' => $lastProgress->lesson->learningObjective->element->code, 'tp' => $lastProgress->lesson->learningObjective->code, 'lesson' => $lastProgress->lesson->code]) }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 12px; border: 1px solid #2347C4; background: #2347C4; color: #FFFFFF; font-weight: 700; font-size: 15px; text-decoration: none; width: fit-content">Lanjutkan Belajar</a>
+                <a href="{{ route('siswa.belajar.materi', ['element' => $lastProgress->lesson->learningObjective->element->code, 'tp' => $lastProgress->lesson->learningObjective->code, 'lesson' => $lastProgress->lesson->code ?: $lastProgress->lesson->id]) }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 12px; border: 1px solid #2347C4; background: #2347C4; color: #FFFFFF; font-weight: 700; font-size: 15px; text-decoration: none; width: fit-content">Lanjutkan Belajar</a>
                 @else
                 <a href="{{ route('siswa.belajar') }}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 12px; border: 1px solid #2347C4; background: #2347C4; color: #FFFFFF; font-weight: 700; font-size: 15px; text-decoration: none; width: fit-content">Lihat Daftar Elemen</a>
                 @endif
@@ -131,7 +131,12 @@
                     @endphp
                     <a href="{{ route('siswa.tugas.kerjakan', $ut->id) }}" style="display: block; padding: 12px 14px; border-radius: 12px; background: {{ $isRevision ? '#FEF3C7' : ($isPastDue ? '#FEE2E2' : '#FFFBEB') }}; border: 1px solid {{ $isRevision ? '#F59E0B' : ($isPastDue ? '#FCA5A5' : '#FDE68A') }}; text-decoration: none; color: inherit; transition: transform 0.15s">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px">
-                            <span style="font-size: 13px; font-weight: 700; color: #15191F; line-height: 1.3">{{ $ut->title }}</span>
+                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                <span style="font-size: 13px; font-weight: 700; color: #15191F; line-height: 1.3">{{ $ut->title }}</span>
+                                @if($ut->isGroup())
+                                    <span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: #EEF2FF; color: #4F46E5; border: 1px solid #C7D2FE;">Kelompok</span>
+                                @endif
+                            </div>
                             @if($isRevision)
                                 <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: #D97706; color: #FFFFFF; white-space: nowrap">Revisi</span>
                             @elseif($isPastDue)
@@ -156,7 +161,12 @@
                     @if(!$urgentTasks->contains('id', $gt->assessment_id))
                         <a href="{{ route('siswa.tugas.kerjakan', $gt->assessment_id) }}" style="display: block; padding: 12px 14px; border-radius: 12px; background: #F0FDF4; border: 1px solid #BBF7D0; text-decoration: none; color: inherit">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px">
-                                <span style="font-size: 13px; font-weight: 700; color: #15191F; line-height: 1.3">{{ $gt->assessment->title ?? 'Tugas' }}</span>
+                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                    <span style="font-size: 13px; font-weight: 700; color: #15191F; line-height: 1.3">{{ $gt->assessment->title ?? 'Tugas' }}</span>
+                                    @if($gt->assessment?->isGroup())
+                                        <span style="font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: #EEF2FF; color: #4F46E5; border: 1px solid #C7D2FE;">Kelompok</span>
+                                    @endif
+                                </div>
                                 <span style="font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: #16A34A; color: #FFFFFF">
                                     Nilai: {{ $gt->score ?? 0 }}/{{ $gt->assessment->max_score ?? 100 }}
                                 </span>

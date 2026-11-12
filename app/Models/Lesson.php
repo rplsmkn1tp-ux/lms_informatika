@@ -12,8 +12,28 @@ class Lesson extends Model
 {
     protected $fillable = [
         'learning_objective_id', 'code', 'title', 'summary', 'content', 'interactive_component',
-        'video_url', 'estimated_minutes', 'sort_order', 'status', 'created_by',
+        'video_url', 'estimated_minutes', 'sort_order', 'status', 'scheduled_at', 'created_by',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'scheduled_at' => 'datetime',
+            'estimated_minutes' => 'integer',
+            'sort_order' => 'integer',
+        ];
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field) {
+            return $this->where($field, $value)->first();
+        }
+
+        return $this->where('code', $value)
+            ->orWhere('id', $value)
+            ->first();
+    }
 
     public function learningObjective(): BelongsTo
     {
@@ -27,7 +47,23 @@ class Lesson extends Model
 
     public function attachments(): HasMany
     {
-        return $this->hasMany(LessonAttachment::class);
+        return $this->hasMany(LessonAttachment::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function readings(): HasMany
+    {
+        return $this->hasMany(LessonAttachment::class)
+            ->where('type', 'pdf')
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
+    public function videos(): HasMany
+    {
+        return $this->hasMany(LessonAttachment::class)
+            ->where('type', 'youtube')
+            ->orderBy('sort_order')
+            ->orderBy('id');
     }
 
     public function classrooms(): BelongsToMany
@@ -38,6 +74,11 @@ class Lesson extends Model
     }
 
     public function assessments(): HasMany
+    {
+        return $this->hasMany(Assessment::class)->where('type', 'tugas');
+    }
+
+    public function allAssessments(): HasMany
     {
         return $this->hasMany(Assessment::class);
     }
@@ -52,10 +93,35 @@ class Lesson extends Model
         return $this->hasMany(Discussion::class);
     }
 
-    /** Subbab terbit yang sudah dibuka untuk kelas tertentu. */
+    public function isScheduled(): bool
+    {
+        return $this->status === 'scheduled';
+    }
+
+    public function isPublished(): bool
+    {
+        if ($this->status === 'published') {
+            return true;
+        }
+
+        if ($this->status === 'scheduled') {
+            return $this->scheduled_at && $this->scheduled_at->isPast();
+        }
+
+        return false;
+    }
+
+    /** Subbab terbit/terjadwal yang sudah dibuka untuk kelas tertentu. */
     public function scopeAvailableFor(Builder $query, int $classroomId): void
     {
-        $query->where('status', 'published')
+        $query->where(function (Builder $sq) {
+                $sq->where('status', 'published')
+                   ->orWhere(function (Builder $sched) {
+                       $sched->where('status', 'scheduled')
+                             ->whereNotNull('scheduled_at')
+                             ->where('scheduled_at', '<=', now());
+                   });
+            })
             ->whereHas('classrooms', function (Builder $q) use ($classroomId) {
                 $q->where('classrooms.id', $classroomId)
                     ->where(fn (Builder $w) => $w

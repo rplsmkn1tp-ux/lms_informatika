@@ -6,6 +6,7 @@ use App\Models\Assessment;
 use App\Models\Submission;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -48,6 +49,8 @@ class Index extends Component
             'lesson_id' => $assessment->lesson_id,
             'attendance_session_id' => $assessment->attendance_session_id,
             'type' => 'tugas',
+            'assignment_mode' => $assessment->assignment_mode ?? 'individual',
+            'max_group_members' => $assessment->max_group_members ?? 4,
             'title' => '[Salinan] ' . $assessment->title,
             'instructions' => $assessment->instructions,
             'teacher_attachments' => $assessment->teacher_attachments,
@@ -75,23 +78,29 @@ class Index extends Component
 
     public function delete($id)
     {
-        $assessment = Assessment::findOrFail($id);
+        $assessment = Assessment::with('submissions')->findOrFail($id);
 
         if ($assessment->created_by !== auth()->id() && auth()->user()->role !== 'admin') {
             abort(403, 'Akses ditolak.');
         }
 
-        // Cek apakah sudah ada pengumpulan dari siswa
-        $hasSubmissions = $assessment->submissions()
-            ->whereIn('status', [Submission::STATUS_SUBMITTED, Submission::STATUS_GRADED, Submission::STATUS_REVISION])
-            ->exists();
-
-        if ($hasSubmissions) {
-            session()->flash('error', 'Tugas tidak dapat dihapus karena sudah ada siswa yang mengumpulkan jawaban.');
-            return;
+        // Hapus file fisik submission siswa jika ada
+        foreach ($assessment->submissions as $submission) {
+            if ($submission->file_path && Storage::disk('local')->exists($submission->file_path)) {
+                Storage::disk('local')->delete($submission->file_path);
+            }
         }
 
-        // Hapus submission yang masih 'dikerjakan' jika ada
+        // Hapus file lampiran tugas jika ada
+        if (!empty($assessment->teacher_attachments) && is_array($assessment->teacher_attachments)) {
+            foreach ($assessment->teacher_attachments as $att) {
+                if (isset($att['path']) && Storage::disk('local')->exists($att['path'])) {
+                    Storage::disk('local')->delete($att['path']);
+                }
+            }
+        }
+
+        // Hapus semua submission, relasi kelas, dan tugas
         $assessment->submissions()->delete();
         $assessment->classrooms()->detach();
         $assessment->delete();

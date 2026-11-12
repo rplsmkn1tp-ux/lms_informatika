@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Assessment extends Model
 {
     protected $fillable = [
-        'learning_objective_id', 'element_id', 'lesson_id', 'attendance_session_id', 'meeting_no', 'type', 'title', 'instructions',
+        'learning_objective_id', 'element_id', 'lesson_id', 'attendance_session_id', 'meeting_no', 'type', 'assignment_mode', 'max_group_members', 'title', 'instructions',
         'teacher_attachments', 'submission_types', 'allow_late', 'allow_resubmit', 'opens_at', 'due_at',
         'kktp', 'max_score', 'max_attempts', 'time_limit_minutes', 'status', 'created_by',
         'grade_group', 'grade_seq',
@@ -27,7 +27,18 @@ class Assessment extends Model
             'due_at' => 'datetime',
             'grade_seq' => 'integer',
             'meeting_no' => 'integer',
+            'max_group_members' => 'integer',
         ];
+    }
+
+    public function groups(): HasMany
+    {
+        return $this->hasMany(AssessmentGroup::class);
+    }
+
+    public function isGroup(): bool
+    {
+        return $this->assignment_mode === 'group';
     }
 
     public function effectiveMeetingNo(): ?int

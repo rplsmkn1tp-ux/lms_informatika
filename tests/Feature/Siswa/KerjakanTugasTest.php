@@ -98,14 +98,15 @@ test('siswa cannot see other students submissions', function () {
 
     $component = Livewire::test(KerjakanTugas::class, ['assessment' => $this->assessment]);
     
-    // Ensure component submission belongs to $this->student, not $this->otherStudent
-    $this->assertEquals($this->student->id, $component->get('submission.student_id'));
+    // Ensure student does not see other student's submission (submission should be null)
+    $this->assertNull($component->get('submission'));
 });
 
 test('siswa can submit assessment successfully', function () {
     $this->actingAs($this->student);
 
     Livewire::test(KerjakanTugas::class, ['assessment' => $this->assessment])
+        ->set('textContent', 'Jawaban teks tugas')
         ->call('submit');
 
     $this->assertTrue(Submission::where('student_id', $this->student->id)->where('status', 'dikumpulkan')->exists());
