@@ -1,0 +1,462 @@
+<!doctype html>
+<!-- Acuan desain Ruang Informatika. Baca BACA-SAYA.md sebelum memakai file ini. -->
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Materi BK-5.2 Model Komputer Von Neumann</title>
+</head>
+<body>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F5F2}
+a{color:#2347C4}a:hover{color:#1A3596}
+:focus-visible{outline:3px solid #F2A93B;outline-offset:2px}
+</style>
+<div style="min-height: 100vh; background: #F4F5F2; color: #15191F; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.6">
+
+<header style="background: #FFFFFF; border-bottom: 1px solid #E2E4DF">
+<div style="max-width: 1360px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px">
+<a href="beranda.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #15191F">
+<span style="width: 40px; height: 40px; border-radius: 11px; background: #2347C4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 600; font-size: 14px">{ }</span>
+<span style="display: flex; flex-direction: column; line-height: 1.25">
+<span style="font-weight: 800; font-size: 16px">Ruang Informatika</span>
+<span style="font-size: 12px; color: #4A515C">SMK Negeri 1 Tanjungpandan</span>
+</span>
+</a>
+<nav aria-label="Navigasi utama" style="display: flex; flex-wrap: wrap; gap: 4px">
+<a href="beranda.html" style="padding: 11px 14px; border-radius: 10px; color: #4A515C; font-weight: 600; font-size: 14px; text-decoration: none">Beranda</a>
+<a href="materi.html" aria-current="page" style="padding: 11px 14px; border-radius: 10px; background: #E8EDFC; color: #2347C4; font-weight: 700; font-size: 14px; text-decoration: none">Materi</a>
+<a href="beranda.html#tugas" style="padding: 11px 14px; border-radius: 10px; color: #4A515C; font-weight: 600; font-size: 14px; text-decoration: none">Tugas</a>
+<a href="#" style="padding: 11px 14px; border-radius: 10px; color: #4A515C; font-weight: 600; font-size: 14px; text-decoration: none">Kuis</a>
+<a href="#" style="padding: 11px 14px; border-radius: 10px; color: #4A515C; font-weight: 600; font-size: 14px; text-decoration: none">Nilai</a>
+</nav>
+<div style="flex: 1 1 200px; display: flex; justify-content: flex-end; align-items: center; gap: 10px">
+<button type="button" aria-label="Notifikasi" style="width: 44px; height: 44px; flex: none; border-radius: 12px; border: 1px solid #E2E4DF; background: #FFFFFF; color: #15191F; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
+</button>
+<button type="button" aria-label="Profil Rizky" style="width: 44px; height: 44px; flex: none; border-radius: 99px; border: 0; background: #F2A93B; color: #15191F; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer">RZ</button>
+</div>
+</div>
+</header>
+
+<div style="max-width: 1360px; margin: 0 auto; padding: 28px 24px 64px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+
+<aside aria-label="Daftar subbab" style="flex: 1 1 240px; min-width: 0; background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.06em; color: #4A515C">BK-5 · BERPIKIR KOMPUTASIONAL</span>
+<h2 style="margin: 0; font-size: 18px; font-weight: 800; line-height: 1.3">Sistem Komputer</h2>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="height: 6px; border-radius: 99px; background: #EDEEEA; overflow: hidden"><div style="width: 20%; height: 100%; border-radius: 99px; background: #2347C4"></div></div>
+<span style="font-size: 13px; color: #4A515C">1 dari 5 subbab selesai</span>
+</div>
+<ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px">
+<li><a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 10px; border-radius: 10px; text-decoration: none; color: #15191F; font-size: 14px">
+<span style="width: 24px; height: 24px; flex: none; border-radius: 99px; background: #2347C4; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+<span>5.1 Perangkat keras &amp; perangkat lunak</span></a></li>
+<li><a href="#" aria-current="step" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 10px; border-radius: 10px; background: #E8EDFC; text-decoration: none; color: #15191F; font-size: 14px; font-weight: 700">
+<span style="width: 24px; height: 24px; flex: none; box-sizing: border-box; border-radius: 99px; border: 2px solid #2347C4; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><span style="width: 8px; height: 8px; border-radius: 99px; background: #2347C4"></span></span>
+<span>5.2 Model komputer Von Neumann</span></a></li>
+<li><a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 10px; border-radius: 10px; text-decoration: none; color: #4A515C; font-size: 14px">
+<span style="width: 24px; height: 24px; flex: none; box-sizing: border-box; border-radius: 99px; border: 2px solid #C9CDC4; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; display: flex; align-items: center; justify-content: center">3</span>
+<span>5.3 Siklus fetch–decode–execute</span></a></li>
+<li><a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 10px; border-radius: 10px; text-decoration: none; color: #4A515C; font-size: 14px">
+<span style="width: 24px; height: 24px; flex: none; box-sizing: border-box; border-radius: 99px; border: 2px solid #C9CDC4; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; display: flex; align-items: center; justify-content: center">4</span>
+<span>5.4 Peran sistem operasi</span></a></li>
+<li><a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 10px; border-radius: 10px; text-decoration: none; color: #4A515C; font-size: 14px">
+<span style="width: 24px; height: 24px; flex: none; box-sizing: border-box; border-radius: 99px; border: 2px solid #C9CDC4; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; display: flex; align-items: center; justify-content: center">5</span>
+<span>5.5 Proses, memori &amp; berkas</span></a></li>
+</ol>
+<div style="border-top: 1px solid #EDEEEA; padding-top: 12px; display: flex; flex-direction: column; gap: 2px">
+<a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 10px; border-radius: 10px; text-decoration: none; color: #4A515C; font-size: 14px">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4h6v3H9zM9 12h6M9 16h4"></path></svg>
+<span>Kuis Sistem Komputer</span></a>
+<a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 10px; border-radius: 10px; text-decoration: none; color: #4A515C; font-size: 14px">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"></rect><rect x="9.5" y="9.5" width="5" height="5"></rect><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"></path></svg>
+<span>Proyek: Spesifikasi PC lab</span></a>
+</div>
+</aside>
+
+<article style="flex: 999 1 560px; min-width: 0; max-width: 780px; display: flex; flex-direction: column; gap: 28px">
+<nav aria-label="Breadcrumb" style="font-size: 13px; color: #4A515C; display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+<a href="beranda.html" style="color: #4A515C">Beranda</a><span aria-hidden="true">/</span>
+<a href="#" style="color: #4A515C">Berpikir Komputasional</a><span aria-hidden="true">/</span>
+<a href="#" style="color: #4A515C">Sistem Komputer</a><span aria-hidden="true">/</span>
+<span style="color: #15191F; font-weight: 600">5.2 Model Von Neumann</span>
+</nav>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.06em; color: #2347C4; font-weight: 600">BK-5.2 · SISTEM KOMPUTER</span>
+<h1 style="margin: 0; font-size: 40px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15">Model Komputer Von Neumann</h1>
+<p style="margin: 0; font-size: 17px; color: #2F353E; max-width: 660px">Hampir semua komputer modern, termasuk HP di sakumu, bekerja dengan rancangan yang diusulkan John von Neumann pada 1945. Mari telusuri bagaimana data mengalir dari input hingga menjadi output.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: #4A515C">
+<span style="display: inline-flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>±20 menit</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M10 9l5 3-5 3z"></path></svg>1 video</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"></rect><rect x="9.5" y="9.5" width="5" height="5"></rect><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"></path></svg>1 simulasi</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4h6v3H9zM9 12h6M9 16h4"></path></svg>1 soal cek pemahaman</span>
+</div>
+</div>
+
+<div role="tablist" aria-label="Bagian subbab" style="display: flex; gap: 4px; border-bottom: 1px solid #E2E4DF; overflow-x: auto">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+<button type="button" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 0; border-bottom: 3px solid {{t.line}}; margin-bottom: -1px; background: transparent; font: inherit; font-size: 15px; font-weight: {{t.weight}}; color: {{t.color}}; cursor: pointer; white-space: nowrap">{{t.label}}
+<sc-if value="{{t.hasCount}}" hint-placeholder-val="{{ false }}"><span style="padding: 1px 8px; border-radius: 99px; background: #EFF0EC; color: #4A515C; font-size: 12px; font-weight: 700">{{t.count}}</span></sc-if>
+</button>
+</sc-for>
+</div>
+
+<sc-if value="{{isMateri}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 32px">
+
+<section id="tujuan" aria-labelledby="tujuan-title" style="background: #E8EDFC; border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 12px">
+<h2 id="tujuan-title" style="margin: 0; font-size: 16px; font-weight: 800; color: #1A3596">Tujuan pembelajaran</h2>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 15px">
+<li style="display: flex; gap: 10px; align-items: flex-start"><span style="color: #2347C4; display: flex; margin-top: 3px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg></span>Menyebutkan komponen utama arsitektur Von Neumann dan fungsinya.</li>
+<li style="display: flex; gap: 10px; align-items: flex-start"><span style="color: #2347C4; display: flex; margin-top: 3px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg></span>Menelusuri alur data Input–Proses–Output di dalam komputer.</li>
+<li style="display: flex; gap: 10px; align-items: flex-start"><span style="color: #2347C4; display: flex; margin-top: 3px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg></span>Membedakan peran unit kendali (CU) dan ALU saat menjalankan instruksi.</li>
+</ul>
+</section>
+
+<div style="position: relative; aspect-ratio: 16 / 9; border-radius: 18px; background: #15191F; overflow: hidden; display: flex; align-items: center; justify-content: center">
+<span style="position: absolute; top: 16px; left: 18px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.06em; color: #9AA3B2">[ VIDEO PEMBELAJARAN ]</span>
+<button type="button" aria-label="Putar video Bagaimana komputer memproses perintah" style="width: 72px; height: 72px; border-radius: 99px; border: 0; background: #F2A93B; color: #15191F; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+</button>
+<div style="position: absolute; left: 18px; right: 18px; bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; color: #FFFFFF">
+<span style="font-size: 15px; font-weight: 700">Bagaimana komputer memproses perintah</span>
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #C5CBD6">[DURASI]</span>
+</div>
+</div>
+
+<section id="konsep" aria-labelledby="konsep-title" style="display: flex; flex-direction: column; gap: 16px">
+<h2 id="konsep-title" style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.01em">Komponen utama</h2>
+<p style="margin: 0; font-size: 16px; color: #2F353E">Ciri khas arsitektur Von Neumann: <strong>data dan program disimpan bersama di memori</strong>. CPU mengambil instruksi satu per satu dari memori, mengerjakannya, lalu mengirim hasilnya ke perangkat output.</p>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px">
+<div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: #2347C4">CPU</span>
+<span style="font-size: 16px; font-weight: 700">Pusat pemrosesan</span>
+<span style="font-size: 14px; color: #4A515C">Unit kendali (CU) mengatur urutan kerja, ALU menghitung, register menyimpan data sementara.</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: #2347C4">RAM</span>
+<span style="font-size: 16px; font-weight: 700">Memori utama</span>
+<span style="font-size: 14px; color: #4A515C">Menyimpan data dan program yang sedang dipakai.</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: #2347C4">I/O</span>
+<span style="font-size: 16px; font-weight: 700">Perangkat input &amp; output</span>
+<span style="font-size: 14px; color: #4A515C">Keyboard dan mouse memasukkan data; monitor dan printer menampilkan hasil.</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: #2347C4">BUS</span>
+<span style="font-size: 16px; font-weight: 700">Jalur data</span>
+<span style="font-size: 14px; color: #4A515C">Menghubungkan CPU, memori, dan perangkat input/output.</span>
+</div>
+</div>
+</section>
+
+<section id="simulasi" aria-labelledby="simulasi-title" style="display: flex; flex-direction: column; gap: 14px">
+<h2 id="simulasi-title" style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.01em">Simulasi Input–Proses–Output</h2>
+<p style="margin: 0; font-size: 16px; color: #2F353E">Ikuti apa yang terjadi saat kamu menghitung <strong>12 + 30</strong> di aplikasi kalkulator. Tekan <strong>Langkah berikutnya</strong> dan perhatikan komponen yang menyala.</p>
+
+<div style="border-radius: 18px; background: #151A22; border: 1px solid #232A35; padding: 20px">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1.6fr) 28px minmax(0, 1fr); align-items: center">
+<div style="grid-column: 1; grid-row: 1; padding: 12px; border-radius: 12px; border: 2px solid {{c.inp.border}}; background: {{c.inp.bg}}; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: {{c.inp.code}}">IN</span>
+<span style="font-size: 14px; font-weight: 700; color: {{c.inp.name}}">Perangkat input</span>
+<span style="font-size: 12px; color: {{c.inp.sub}}">Keyboard</span>
+</div>
+<span style="grid-column: 2; grid-row: 1; display: flex; justify-content: center; color: #5C6676"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+<div style="grid-column: 3; grid-row: 1; padding: 10px; border-radius: 14px; border: 1.5px dashed #3A4250; display: flex; flex-direction: column; gap: 8px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em; color: #9AA3B2">CPU</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<div style="padding: 10px; border-radius: 10px; border: 2px solid {{c.cu.border}}; background: {{c.cu.bg}}; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: {{c.cu.code}}">CU</span>
+<span style="font-size: 13px; font-weight: 700; color: {{c.cu.name}}">Unit kendali</span>
+</div>
+<div style="padding: 10px; border-radius: 10px; border: 2px solid {{c.alu.border}}; background: {{c.alu.bg}}; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: {{c.alu.code}}">ALU</span>
+<span style="font-size: 13px; font-weight: 700; color: {{c.alu.name}}">Aritmetika &amp; logika</span>
+</div>
+</div>
+</div>
+<span style="grid-column: 4; grid-row: 1; display: flex; justify-content: center; color: #5C6676"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+<div style="grid-column: 5; grid-row: 1; padding: 12px; border-radius: 12px; border: 2px solid {{c.outp.border}}; background: {{c.outp.bg}}; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: {{c.outp.code}}">OUT</span>
+<span style="font-size: 14px; font-weight: 700; color: {{c.outp.name}}">Perangkat output</span>
+<span style="font-size: 12px; color: {{c.outp.sub}}">Monitor</span>
+</div>
+<span style="grid-column: 3; grid-row: 2; display: flex; justify-content: center; padding: 6px 0; color: #5C6676"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4"></path></svg></span>
+<div style="grid-column: 3; grid-row: 3; padding: 12px; border-radius: 12px; border: 2px solid {{c.mem.border}}; background: {{c.mem.bg}}; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; color: {{c.mem.code}}">RAM</span>
+<span style="font-size: 14px; font-weight: 700; color: {{c.mem.name}}">Memori utama</span>
+<span style="font-size: 12px; color: {{c.mem.sub}}">Data + program</span>
+</div>
+</div>
+
+<div aria-live="polite" style="margin-top: 18px; padding: 16px 18px; border-radius: 14px; background: #0E1117; border: 1px solid #232A35; display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em; color: #8B95A5">LANGKAH {{stepNo}} DARI 6</span>
+<span style="font-size: 18px; font-weight: 700; color: #FFFFFF">{{stepTitle}}</span>
+<span style="font-size: 15px; color: #C5CBD6">{{stepText}}</span>
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 14px; color: #F2C27B">{{stepData}}</span>
+</div>
+
+<div style="margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<button type="button" onClick="{{prev}}" disabled="{{isFirst}}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #3A4250; background: transparent; color: #E7EAF0; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; opacity: {{prevOpacity}}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>Sebelumnya</button>
+<div aria-hidden="true" style="display: flex; align-items: center; gap: 6px">
+<sc-for list="{{dots}}" as="d" hint-placeholder-count="6">
+<span style="height: 8px; width: {{d.w}}; border-radius: 99px; background: {{d.color}}"></span>
+</sc-for>
+</div>
+<button type="button" onClick="{{next}}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: #F2A93B; color: #15191F; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">{{nextLabel}}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+</div>
+</div>
+
+<div style="display: flex; gap: 14px; align-items: flex-start; background: #FDF1DC; border-radius: 16px; padding: 18px 20px">
+<span style="color: #8A4B00; display: flex; margin-top: 2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg></span>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<strong style="font-size: 15px; color: #5C3300">Ingat</strong>
+<span style="font-size: 15px; color: #3D2A10">RAM bersifat volatil: isinya hilang saat komputer dimatikan. Karena itu, dokumen perlu disimpan ke media penyimpanan seperti SSD atau flashdisk.</span>
+</div>
+</div>
+</section>
+
+<section id="kuis" aria-labelledby="kuis-title" style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 20px; padding: 26px; display: flex; flex-direction: column; gap: 16px">
+<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.06em; color: #4A515C">CEK PEMAHAMAN · 1 SOAL</span>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="kuis-title" style="margin: 0; font-size: 20px; font-weight: 800; line-height: 1.35">Pada simulasi tadi, komponen mana yang menghitung 12 + 30?</h2>
+<p style="margin: 0; font-size: 14px; color: #4A515C">Pilih satu jawaban.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{options}}" as="opt" hint-placeholder-count="4">
+<button type="button" aria-pressed="{{opt.pressed}}" onClick="{{opt.pick}}" style="display: flex; align-items: center; gap: 14px; width: 100%; min-height: 56px; padding: 10px 16px; border-radius: 14px; border: 2px solid {{opt.border}}; background: {{opt.bg}}; color: #15191F; font: inherit; text-align: left; cursor: pointer">
+<span style="width: 32px; height: 32px; flex: none; border-radius: 8px; background: {{opt.badgeBg}}; color: {{opt.badgeColor}}; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 600; font-size: 14px">{{opt.key}}</span>
+<span style="font-size: 15px; font-weight: 600">{{opt.label}}</span>
+</button>
+</sc-for>
+</div>
+<sc-if value="{{isRight}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display: flex; gap: 12px; align-items: flex-start; padding: 16px 18px; border-radius: 14px; background: #E7F3EC; color: #12442C">
+<span style="display: flex; margin-top: 2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+<span style="font-size: 15px"><strong>Benar!</strong> ALU mengerjakan operasi aritmetika dan logika. Unit kendali hanya mengambil, menerjemahkan, dan mengatur urutan instruksi.</span>
+</div>
+</sc-if>
+<sc-if value="{{isWrong}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; padding: 16px 18px; border-radius: 14px; background: #FBEDE5; color: #6B2A0E">
+<span style="display: flex; margin-top: 2px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
+<span style="flex: 1 1 240px; font-size: 15px"><strong>Belum tepat.</strong> Lihat lagi langkah 4 di simulasi: komponen yang menyala saat 12 + 30 dihitung adalah bagian CPU yang khusus menghitung.</span>
+<button type="button" onClick="{{retry}}" style="min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #B4441A; background: #FFFFFF; color: #8A3412; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Coba lagi</button>
+</div>
+</sc-if>
+</section>
+
+</div>
+</sc-if>
+
+<sc-if value="{{isDiskusi}}" hint-placeholder-val="{{ false }}">
+<section aria-label="Diskusi kelas" style="display: flex; flex-direction: column; gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<label for="tanya" style="font-size: 14px; font-weight: 700">Tulis pertanyaan atau tanggapan</label>
+<textarea id="tanya" rows="3" placeholder="Contoh: apa bedanya RAM dan SSD?" style="font: inherit; font-size: 15px; padding: 12px 14px; border-radius: 12px; border: 1px solid #C9CDC4; resize: vertical; color: #15191F"></textarea>
+<div style="display: flex; justify-content: flex-end"><button type="button" style="min-height: 44px; padding: 0 20px; border-radius: 12px; border: 0; background: #2347C4; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer">Kirim</button></div>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 18px; padding: 20px; display: flex; gap: 14px">
+<span style="width: 40px; height: 40px; flex: none; border-radius: 99px; background: #FDF1DC; color: #8A4B00; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px">DA</span>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<p style="margin: 0; font-size: 14px"><strong>Dimas A.</strong> <span style="color: #4A515C">· 2 jam lalu</span></p>
+<p style="margin: 0; font-size: 15px; color: #2F353E">Kenapa data di RAM hilang kalau listrik mati, tapi file di SSD tidak?</p>
+<div style="margin-top: 10px; display: flex; gap: 12px; padding: 14px; border-radius: 14px; background: #F4F5F2">
+<span style="width: 36px; height: 36px; flex: none; border-radius: 99px; background: #E8EDFC; color: #2347C4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px">GI</span>
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<p style="margin: 0; font-size: 14px"><strong>Guru Informatika</strong> <span style="padding: 1px 7px; border-radius: 99px; background: #2347C4; color: #FFFFFF; font-size: 11px; font-weight: 700">Guru</span> <span style="color: #4A515C">· 1 jam lalu</span></p>
+<p style="margin: 0; font-size: 15px; color: #2F353E">RAM butuh aliran listrik untuk menjaga datanya (volatil). SSD memakai memori flash yang tetap menyimpan data tanpa listrik. Kita bahas lagi di 5.5.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{isCatatan}}" hint-placeholder-val="{{ false }}">
+<section aria-label="Catatanku" style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<label for="catatan" style="font-size: 14px; font-weight: 700">Catatan pribadi <span style="font-weight: 500; color: #4A515C">(hanya terlihat olehmu)</span></label>
+<textarea id="catatan" rows="8" placeholder="Tulis ringkasan dengan kata-katamu sendiri…" style="font: inherit; font-size: 15px; padding: 12px 14px; border-radius: 12px; border: 1px solid #C9CDC4; resize: vertical; color: #15191F"></textarea>
+<div style="display: flex; justify-content: flex-end"><button type="button" style="min-height: 44px; padding: 0 20px; border-radius: 12px; border: 0; background: #2347C4; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer">Simpan catatan</button></div>
+</section>
+</sc-if>
+
+<nav aria-label="Navigasi subbab" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid #E2E4DF">
+<a href="#" style="flex: 1 1 200px; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 14px; border-radius: 14px; border: 1px solid #E2E4DF; background: #FFFFFF; text-decoration: none; color: #15191F">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>
+<span style="display: flex; flex-direction: column; line-height: 1.3"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: #4A515C">SEBELUMNYA</span><span style="font-size: 14px; font-weight: 700">5.1 Perangkat keras &amp; lunak</span></span>
+</a>
+<sc-if value="{{notDone}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{toggleDone}}" style="flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; min-height: 56px; padding: 0 22px; border-radius: 14px; border: 0; background: #2347C4; color: #FFFFFF; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Tandai selesai</button>
+</sc-if>
+<sc-if value="{{done}}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{toggleDone}}" aria-pressed="true" style="flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; min-height: 56px; padding: 0 22px; border-radius: 14px; border: 2px solid #2347C4; background: #E8EDFC; color: #1A3596; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>Subbab selesai</button>
+</sc-if>
+<a href="#" style="flex: 1 1 200px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-height: 56px; padding: 10px 14px; border-radius: 14px; border: 1px solid #E2E4DF; background: #FFFFFF; text-decoration: none; color: #15191F; text-align: right">
+<span style="display: flex; flex-direction: column; line-height: 1.3"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: #4A515C">BERIKUTNYA</span><span style="font-size: 14px; font-weight: 700">5.3 Siklus fetch–decode–execute</span></span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+</a>
+</nav>
+</article>
+
+<aside aria-label="Panel pendukung" style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+<nav aria-labelledby="toc-title" style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 6px">
+<h2 id="toc-title" style="margin: 0 0 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.06em; font-weight: 600; color: #4A515C">DI HALAMAN INI</h2>
+<a href="#tujuan" style="display: flex; align-items: center; min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px; text-decoration: none; color: #15191F">Tujuan pembelajaran</a>
+<a href="#konsep" style="display: flex; align-items: center; min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px; text-decoration: none; color: #15191F">Komponen utama</a>
+<a href="#simulasi" style="display: flex; align-items: center; min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px; text-decoration: none; color: #15191F">Simulasi Input–Proses–Output</a>
+<a href="#kuis" style="display: flex; align-items: center; min-height: 40px; padding: 0 10px; border-radius: 8px; font-size: 14px; text-decoration: none; color: #15191F">Cek pemahaman</a>
+</nav>
+
+<section aria-labelledby="unduh-title" style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<h2 id="unduh-title" style="margin: 0 0 4px; font-size: 16px; font-weight: 700">Materi pendukung</h2>
+<a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; border-radius: 12px; background: #F4F5F2; text-decoration: none; color: #15191F">
+<span style="color: #2347C4; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column; line-height: 1.3"><span style="font-size: 14px; font-weight: 700">Modul BK-5.2</span><span style="font-size: 12px; color: #4A515C">PDF · [UKURAN]</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>
+</a>
+<a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; border-radius: 12px; background: #F4F5F2; text-decoration: none; color: #15191F">
+<span style="color: #2347C4; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4h6v3H9zM9 12h6M9 16h4"></path></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column; line-height: 1.3"><span style="font-size: 14px; font-weight: 700">LKS: Spesifikasi PC lab</span><span style="font-size: 12px; color: #4A515C">DOCX · [UKURAN]</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>
+</a>
+<a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; border-radius: 12px; background: #F4F5F2; text-decoration: none; color: #15191F">
+<span style="color: #2347C4; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 15l5-5 4 4 3-3 6 6"></path></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column; line-height: 1.3"><span style="font-size: 14px; font-weight: 700">Infografis Von Neumann</span><span style="font-size: 12px; color: #4A515C">PNG · [UKURAN]</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>
+</a>
+</section>
+
+<section aria-labelledby="tanya-title" style="background: #15191F; color: #FFFFFF; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 10px">
+<h2 id="tanya-title" style="margin: 0; font-size: 16px; font-weight: 700">Ada yang belum jelas?</h2>
+<p style="margin: 0; font-size: 14px; color: #C5CBD6">Tanyakan di diskusi kelas. Guru dan teman sekelas bisa membantu menjawab.</p>
+<button type="button" onClick="{{openDiskusi}}" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; margin-top: 4px; border-radius: 12px; border: 0; background: #F2A93B; color: #15191F; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Tanya di diskusi</button>
+</section>
+</aside>
+
+</div>
+</div>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'materi', step: 0, pick: null, done: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const steps = [
+      { active: 'inp', title: 'Input', text: 'Kamu mengetik 12 + 30 di keyboard. Perangkat input mengubah tombol yang ditekan menjadi data biner.', data: 'Masukan: "12 + 30"' },
+      { active: 'mem', title: 'Disimpan di memori', text: 'Data dan instruksi program kalkulator disimpan bersama di memori utama. Inilah ciri khas arsitektur Von Neumann.', data: 'RAM: 12, 30, instruksi TAMBAH' },
+      { active: 'cu', title: 'Ambil dan terjemahkan instruksi', text: 'Unit kendali mengambil instruksi dari memori lewat bus, lalu menerjemahkannya menjadi perintah: jumlahkan dua bilangan.', data: 'Instruksi: TAMBAH' },
+      { active: 'alu', title: 'Eksekusi', text: 'ALU mengerjakan operasi aritmetika. Hasil sementara disimpan di register CPU.', data: '12 + 30 = 42' },
+      { active: 'mem', title: 'Hasil disimpan', text: 'Hasil perhitungan dikirim kembali ke memori agar bisa dipakai program kalkulator.', data: 'RAM: 42' },
+      { active: 'outp', title: 'Output', text: 'Hasil dikirim ke perangkat output, sehingga layar menampilkan angka 42.', data: 'Layar: 42' }
+    ];
+    const last = steps.length - 1;
+    const cur = steps[s.step];
+    const ids = ['inp', 'mem', 'cu', 'alu', 'outp'];
+    const c = {};
+    ids.forEach((id) => {
+      const on = cur.active === id;
+      c[id] = {
+        bg: on ? '#F2A93B' : '#1A2029',
+        border: on ? '#F2A93B' : '#2B323D',
+        name: on ? '#15191F' : '#E7EAF0',
+        sub: on ? '#3D2A10' : '#9AA3B2',
+        code: on ? '#15191F' : '#F2A93B'
+      };
+    });
+    const dots = steps.map((x, i) => ({
+      w: i === s.step ? '22px' : '8px',
+      color: i === s.step ? '#F2A93B' : (i < s.step ? '#8B95A5' : '#2B323D')
+    }));
+
+    const tabDefs = [
+      { id: 'materi', label: 'Materi', count: '' },
+      { id: 'diskusi', label: 'Diskusi', count: '8' },
+      { id: 'catatan', label: 'Catatanku', count: '' }
+    ];
+    const tabs = tabDefs.map((t) => {
+      const on = s.tab === t.id;
+      return {
+        label: t.label,
+        count: t.count,
+        hasCount: t.count !== '',
+        on: on,
+        line: on ? '#2347C4' : 'transparent',
+        color: on ? '#15191F' : '#4A515C',
+        weight: on ? '700' : '600',
+        pick: () => this.setState({ tab: t.id })
+      };
+    });
+
+    const correct = 'b';
+    const answered = s.pick !== null;
+    const base = [
+      { id: 'a', key: 'A', label: 'Unit kendali (CU)' },
+      { id: 'b', key: 'B', label: 'ALU (unit aritmetika & logika)' },
+      { id: 'c', key: 'C', label: 'Memori utama (RAM)' },
+      { id: 'd', key: 'D', label: 'Perangkat output' }
+    ];
+    const options = base.map((o) => {
+      const chosen = s.pick === o.id;
+      let border = '#E2E4DF';
+      let bg = '#FFFFFF';
+      let badgeBg = '#F1F2EE';
+      let badgeColor = '#4A515C';
+      if (answered && o.id === correct) {
+        border = '#1D6B45'; bg = '#E7F3EC'; badgeBg = '#1D6B45'; badgeColor = '#FFFFFF';
+      } else if (chosen) {
+        border = '#B4441A'; bg = '#FBEDE5'; badgeBg = '#B4441A'; badgeColor = '#FFFFFF';
+      }
+      return {
+        key: o.key,
+        label: o.label,
+        border: border,
+        bg: bg,
+        badgeBg: badgeBg,
+        badgeColor: badgeColor,
+        pressed: chosen,
+        pick: () => this.setState({ pick: o.id })
+      };
+    });
+
+    return {
+      tabs: tabs,
+      isMateri: s.tab === 'materi',
+      isDiskusi: s.tab === 'diskusi',
+      isCatatan: s.tab === 'catatan',
+      openDiskusi: () => this.setState({ tab: 'diskusi' }),
+      c: c,
+      dots: dots,
+      stepNo: s.step + 1,
+      stepTitle: cur.title,
+      stepText: cur.text,
+      stepData: cur.data,
+      isFirst: s.step === 0,
+      prevOpacity: s.step === 0 ? '0.4' : '1',
+      prev: () => this.setState({ step: Math.max(0, s.step - 1) }),
+      next: () => this.setState({ step: s.step >= last ? 0 : s.step + 1 }),
+      nextLabel: s.step >= last ? 'Ulangi simulasi' : 'Langkah berikutnya',
+      options: options,
+      isRight: answered && s.pick === correct,
+      isWrong: answered && s.pick !== correct,
+      retry: () => this.setState({ pick: null }),
+      done: s.done,
+      notDone: !s.done,
+      toggleDone: () => this.setState({ done: !s.done })
+    };
+  }
+}
+</script>
+</body>
+</html>
