@@ -40,6 +40,8 @@ class RegistrationTest extends TestCase
         $response->assertOk();
         $response->assertSee('Buat Akun Baru');
         $response->assertSee('Minimal 5 karakter');
+        $response->assertSee('NUPTK / NIP');
+        $response->assertSee('Mata Pelajaran (Mapel)');
     }
 
     public function test_siswa_can_register_with_valid_5_char_password_with_uppercase_and_symbol(): void
@@ -110,6 +112,8 @@ class RegistrationTest extends TestCase
             'role' => 'guru',
             'name' => 'Dewi Anggraini',
             'email' => 'dewi@example.com',
+            'nip_nuptk' => '198501012010012001',
+            'subject' => 'Pemrograman Web',
             'password' => 'Dewi@', // 5 chars, uppercase D, symbol @
             'password_confirmation' => 'Dewi@',
         ]);
@@ -120,6 +124,8 @@ class RegistrationTest extends TestCase
             'email' => 'dewi@example.com',
             'name' => 'Dewi Anggraini',
             'role' => 'guru',
+            'nip_nuptk' => '198501012010012001',
+            'subject' => 'Pemrograman Web',
             'status' => 'pending',
         ]);
     }

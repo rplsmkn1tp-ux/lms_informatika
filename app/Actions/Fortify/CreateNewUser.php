@@ -31,6 +31,9 @@ class CreateNewUser implements CreatesNewUsers
         if ($role === 'siswa') {
             $rules['nisn'] = ['nullable', 'string', 'max:50', 'unique:users,nisn'];
             $rules['classroom_id'] = ['required', 'exists:classrooms,id'];
+        } elseif ($role === 'guru') {
+            $rules['nip_nuptk'] = ['nullable', 'string', 'max:50'];
+            $rules['subject'] = ['nullable', 'string', 'max:100'];
         }
 
         Validator::make($input, $rules)->validate();
@@ -42,7 +45,9 @@ class CreateNewUser implements CreatesNewUsers
             'email' => $input['email'],
             'password' => $input['password'],
             'role' => $role,
-            'nisn' => $role === 'siswa' ? $input['nisn'] : null,
+            'nisn' => $role === 'siswa' ? ($input['nisn'] ?? null) : null,
+            'nip_nuptk' => $role === 'guru' ? (!empty($input['nip_nuptk']) ? trim($input['nip_nuptk']) : null) : null,
+            'subject' => $role === 'guru' ? (!empty($input['subject']) ? trim($input['subject']) : 'Informatika') : null,
             'status' => $status,
         ]);
 

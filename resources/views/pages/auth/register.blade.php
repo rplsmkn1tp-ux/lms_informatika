@@ -78,6 +78,29 @@
                 </flux:select>
             </div>
 
+            <!-- Guru Only Fields -->
+            <div x-show="role === 'guru'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;" class="flex flex-col gap-5">
+                <flux:input
+                    name="nip_nuptk"
+                    label="NUPTK / NIP"
+                    :value="old('nip_nuptk')"
+                    type="text"
+                    placeholder="Masukkan NUPTK (16 digit) atau NIP (18 digit)"
+                    icon="identification"
+                    class="transition-colors duration-200 focus-within:ring-2 focus-within:ring-blue-500/50"
+                />
+
+                <flux:input
+                    name="subject"
+                    label="Mata Pelajaran (Mapel)"
+                    :value="old('subject', 'Informatika')"
+                    type="text"
+                    placeholder="Contoh: Informatika"
+                    icon="book-open"
+                    class="transition-colors duration-200 focus-within:ring-2 focus-within:ring-blue-500/50"
+                />
+            </div>
+
             <!-- Email -->
             <flux:input
                 name="email"

@@ -103,4 +103,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(AttendanceRecord::class, 'student_id');
     }
+
+    public function getIdentifierAttribute(): ?string
+    {
+        return $this->role === 'siswa' ? ($this->nisn ?: '-') : ($this->nip_nuptk ?: '-');
+    }
 }
