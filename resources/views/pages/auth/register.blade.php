@@ -98,12 +98,15 @@
                 type="password"
                 required
                 autocomplete="new-password"
-                placeholder="Buat kata sandi yang kuat"
+                placeholder="Minimal 5 karakter (ada huruf besar & simbol)"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
                 viewable
                 icon="lock-closed"
                 class="transition-colors duration-200 focus-within:ring-2 focus-within:ring-blue-500/50"
             />
+            <p class="text-[12px] text-gray-500 dark:text-gray-400 -mt-3">
+                Minimal 5 karakter, harus mengandung huruf besar (A-Z) dan simbol (!@#$%^&*).
+            </p>
 
             <!-- Confirm Password -->
             <flux:input

@@ -19,3 +19,4 @@
 <meta name="apple-mobile-web-app-title" content="{{ $appName }}">
 <meta name="application-name" content="{{ $appName }}">
 <meta name="theme-color" content="#2347C4">
+

@@ -59,14 +59,14 @@ class ProfilTest extends TestCase
         Livewire::actingAs($user)
             ->test(Profil::class)
             ->set('current_password', 'password')
-            ->set('password', 'new-password')
-            ->set('password_confirmation', 'new-password')
+            ->set('password', 'New-password!')
+            ->set('password_confirmation', 'New-password!')
             ->call('updatePassword')
             ->assertHasNoErrors();
 
         $this->assertTrue(auth()->validate([
             'email' => $user->email,
-            'password' => 'new-password',
+            'password' => 'New-password!',
         ]));
     }
 
@@ -77,8 +77,8 @@ class ProfilTest extends TestCase
         Livewire::actingAs($user)
             ->test(Profil::class)
             ->set('current_password', 'wrong-password')
-            ->set('password', 'new-password')
-            ->set('password_confirmation', 'new-password')
+            ->set('password', 'New-password!')
+            ->set('password_confirmation', 'New-password!')
             ->call('updatePassword')
             ->assertHasErrors(['current_password']);
     }
@@ -90,8 +90,8 @@ class ProfilTest extends TestCase
         $component = Livewire::actingAs($user)
             ->test(Profil::class)
             ->set('current_password', 'wrong-password')
-            ->set('password', 'new-password')
-            ->set('password_confirmation', 'new-password');
+            ->set('password', 'New-password!')
+            ->set('password_confirmation', 'New-password!');
 
         for ($i = 0; $i < 5; $i++) {
             $component->call('updatePassword');

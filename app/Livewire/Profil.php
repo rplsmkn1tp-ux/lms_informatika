@@ -10,6 +10,7 @@ use Illuminate\Validation\Rule;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Flux\Flux;
 
@@ -71,7 +72,7 @@ class Profil extends Component
 
         $validated = $this->validate([
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', Password::default(), 'confirmed'],
         ]);
 
         RateLimiter::clear('update-password:'.$user->id);
