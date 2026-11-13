@@ -233,6 +233,222 @@ class LogoService
     }
 
     /**
+     * Synchronize public favicon files (favicon.ico, favicon.svg, apple-touch-icon.png)
+     * with the newly uploaded/trimmed custom logo.
+     *
+     * @param string $trimmedRelativePath
+     * @return void
+     */
+    public function syncPublicFavicons(string $trimmedRelativePath): void
+    {
+        try {
+            $fullPath = Storage::disk('public')->path($trimmedRelativePath);
+            if (!file_exists($fullPath)) {
+                return;
+            }
+
+            $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+
+            if ($extension === 'svg') {
+                @copy($fullPath, public_path('favicon.svg'));
+                return;
+            }
+
+            if (!extension_loaded('gd')) {
+                return;
+            }
+
+            $content = file_get_contents($fullPath);
+            if (!$content) {
+                return;
+            }
+
+            $sourceIm = @imagecreatefromstring($content);
+            if (!$sourceIm) {
+                return;
+            }
+
+            // 1. Apple Touch Icon (180x180 PNG)
+            $im180 = $this->resizeCanvasSquare($sourceIm, 180);
+            if ($im180) {
+                @imagepng($im180, public_path('apple-touch-icon.png'));
+            }
+
+            // 2. Favicon ICO (16, 32, 48 multi-size)
+            $this->generateIcoFromGd($sourceIm, public_path('favicon.ico'), [16, 32, 48]);
+
+            // 3. SVG wrapper for favicon.svg embedding the high-res PNG
+            $base64Data = base64_encode($content);
+            $mimeType = $extension === 'jpg' || $extension === 'jpeg' ? 'image/jpeg' : ($extension === 'webp' ? 'image/webp' : 'image/png');
+            $svgWrapper = <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+    <image width="128" height="128" href="data:{$mimeType};base64,{$base64Data}" preserveAspectRatio="xMidYMid meet"/>
+</svg>
+SVG;
+            @file_put_contents(public_path('favicon.svg'), $svgWrapper);
+
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to sync public favicons: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Restore public favicon files to default Ruang Informatika branding.
+     *
+     * @return void
+     */
+    public function restoreDefaultFavicons(): void
+    {
+        try {
+            $svgContent = <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+    <defs>
+        <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#2A52E2"/>
+            <stop offset="100%" stop-color="#1B38A6"/>
+        </linearGradient>
+    </defs>
+    <rect width="128" height="128" rx="28" fill="url(#bgGrad)"/>
+    <!-- Left curly brace { -->
+    <path d="M 46 36 C 40 36 36 40 36 46 L 36 56 C 36 60 33 63 29 64 C 33 65 36 68 36 72 L 36 82 C 36 88 40 92 46 92 L 48 92 C 50.2 92 52 90.2 52 88 C 52 85.8 50.2 84 48 84 L 46 84 C 44 84 43 83 43 81 L 43 71 C 43 65.5 38.5 64 35 64 C 38.5 64 43 62.5 43 57 L 43 47 C 43 45 44 44 46 44 L 48 44 C 50.2 44 52 42.2 52 40 C 52 37.8 50.2 36 48 36 Z" fill="#FFFFFF"/>
+    <!-- Right curly brace } -->
+    <path d="M 82 36 C 88 36 92 40 92 46 L 92 56 C 92 60 95 63 99 64 C 95 65 92 68 92 72 L 92 82 C 92 88 88 92 82 92 L 80 92 C 77.8 92 76 90.2 76 88 C 76 85.8 77.8 84 80 84 L 82 84 C 84 84 85 83 85 81 L 85 71 C 85 65.5 89.5 64 93 64 C 89.5 64 85 62.5 85 57 L 85 47 C 85 45 84 44 82 44 L 80 44 C 77.8 44 76 42.2 76 40 C 76 37.8 77.8 36 80 36 Z" fill="#FFFFFF"/>
+</svg>
+SVG;
+            @file_put_contents(public_path('favicon.svg'), $svgContent);
+
+            if (!extension_loaded('gd')) {
+                return;
+            }
+
+            $brandIm = $this->createDefaultBrandImage(180);
+            if ($brandIm) {
+                @imagepng($brandIm, public_path('apple-touch-icon.png'));
+                $this->generateIcoFromGd($brandIm, public_path('favicon.ico'), [16, 32, 48]);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to restore default favicons: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Create default brand icon GD image
+     */
+    public function createDefaultBrandImage(int $size)
+    {
+        $img = imagecreatetruecolor($size, $size);
+        imagealphablending($img, false);
+        imagesavealpha($img, true);
+
+        $transparent = imagecolorallocatealpha($img, 0, 0, 0, 127);
+        imagefill($img, 0, 0, $transparent);
+        imagealphablending($img, true);
+
+        $blue = imagecolorallocate($img, 35, 71, 196);
+        $white = imagecolorallocate($img, 255, 255, 255);
+        $radius = (int) round($size * 0.22);
+
+        imagefilledrectangle($img, $radius, 0, $size - 1 - $radius, $size - 1, $blue);
+        imagefilledrectangle($img, 0, $radius, $size - 1, $size - 1 - $radius, $blue);
+        imagefilledellipse($img, $radius, $radius, $radius * 2, $radius * 2, $blue);
+        imagefilledellipse($img, $size - 1 - $radius, $radius, $radius * 2, $radius * 2, $blue);
+        imagefilledellipse($img, $radius, $size - 1 - $radius, $radius * 2, $radius * 2, $blue);
+        imagefilledellipse($img, $size - 1 - $radius, $size - 1 - $radius, $radius * 2, $radius * 2, $blue);
+
+        $fontFile = 'C:\Windows\Fonts\consola.ttf';
+        if (!file_exists($fontFile)) {
+            $fontFile = 'C:\Windows\Fonts\arialbd.ttf';
+        }
+
+        if (file_exists($fontFile) && function_exists('imagettftext')) {
+            $fontSize = (int) round($size * 0.46);
+            $bbox = imagettfbbox($fontSize, 0, $fontFile, '{ }');
+            $textWidth = abs($bbox[4] - $bbox[0]);
+            $textHeight = abs($bbox[5] - $bbox[1]);
+            $x = (int) round(($size - $textWidth) / 2) - $bbox[0];
+            $y = (int) round(($size + $textHeight) / 2) - 2;
+            imagettftext($img, $fontSize, 0, $x, $y, $white, $fontFile, '{ }');
+        } else {
+            $str = "{ }";
+            $font = 5;
+            $tw = imagefontwidth($font) * strlen($str);
+            $th = imagefontheight($font);
+            $x = (int)(($size - $tw) / 2);
+            $y = (int)(($size - $th) / 2);
+            imagestring($img, $font, $x, $y, $str, $white);
+        }
+
+        return $img;
+    }
+
+    /**
+     * Resamples an image onto a square canvas with transparent background.
+     */
+    protected function resizeCanvasSquare($sourceIm, int $targetDim)
+    {
+        $sw = imagesx($sourceIm);
+        $sh = imagesy($sourceIm);
+
+        $dest = imagecreatetruecolor($targetDim, $targetDim);
+        imagealphablending($dest, false);
+        imagesavealpha($dest, true);
+        $transparent = imagecolorallocatealpha($dest, 0, 0, 0, 127);
+        imagefill($dest, 0, 0, $transparent);
+        imagealphablending($dest, true);
+
+        $scale = min($targetDim / $sw, $targetDim / $sh);
+        $dw = (int) round($sw * $scale);
+        $dh = (int) round($sh * $scale);
+        $dx = (int) round(($targetDim - $dw) / 2);
+        $dy = (int) round(($targetDim - $dh) / 2);
+
+        imagecopyresampled($dest, $sourceIm, $dx, $dy, 0, 0, $dw, $dh, $sw, $sh);
+
+        return $dest;
+    }
+
+    /**
+     * Generate multi-resolution ICO file from GD image
+     */
+    protected function generateIcoFromGd($sourceIm, string $outputPath, array $sizes = [16, 32, 48]): void
+    {
+        $images = [];
+        foreach ($sizes as $s) {
+            $resized = $this->resizeCanvasSquare($sourceIm, $s);
+            if (!$resized) continue;
+
+            ob_start();
+            imagepng($resized);
+            $pngData = ob_get_clean();
+            $images[] = [
+                'width' => $s,
+                'height' => $s,
+                'data' => $pngData,
+                'size' => strlen($pngData),
+            ];
+        }
+
+        if (empty($images)) return;
+
+        // ICO header (6 bytes)
+        $ico = pack('vvv', 0, 1, count($images));
+        $offset = 6 + (count($images) * 16);
+
+        foreach ($images as $img) {
+            $w = $img['width'] >= 256 ? 0 : $img['width'];
+            $h = $img['height'] >= 256 ? 0 : $img['height'];
+            $ico .= pack('CCCCvvVV', $w, $h, 0, 0, 1, 32, $img['size'], $offset);
+            $offset += $img['size'];
+        }
+
+        foreach ($images as $img) {
+            $ico .= $img['data'];
+        }
+
+        @file_put_contents($outputPath, $ico);
+    }
+
+    /**
      * Helper to get RGBA color values of a pixel
      */
     private function getPixelRgba($im, int $x, int $y): array

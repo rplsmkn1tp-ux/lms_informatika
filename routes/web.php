@@ -105,3 +105,35 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('profil', \App\Livewire\Profil::class)->name('profil');
 });
+
+Route::get('site.webmanifest', function () {
+    $appName = \App\Models\Setting::getValue('app_name', 'Ruang Informatika');
+    $customLogo = \App\Models\Setting::getValue('app_logo');
+    $logoVer = \App\Models\Setting::getValue('logo_version', '1');
+    $iconUrl = $customLogo ? asset('storage/' . $customLogo) . '?v=' . $logoVer : asset('favicon.svg') . '?v=' . $logoVer;
+    $iconType = ($customLogo && !str_ends_with(strtolower($customLogo), '.svg')) ? 'image/png' : 'image/svg+xml';
+    $appleIcon = $customLogo ? asset('storage/' . $customLogo) . '?v=' . $logoVer : asset('apple-touch-icon.png') . '?v=' . $logoVer;
+
+    return response()->json([
+        'name' => $appName,
+        'short_name' => \Illuminate\Support\Str::limit($appName, 20),
+        'start_url' => '/',
+        'display' => 'standalone',
+        'background_color' => '#F4F5F2',
+        'theme_color' => '#2347C4',
+        'icons' => [
+            [
+                'src' => $iconUrl,
+                'sizes' => 'any',
+                'type' => $iconType,
+                'purpose' => 'any maskable',
+            ],
+            [
+                'src' => $appleIcon,
+                'sizes' => '180x180',
+                'type' => 'image/png',
+            ],
+        ],
+    ])->header('Content-Type', 'application/manifest+json');
+})->name('webmanifest');
+

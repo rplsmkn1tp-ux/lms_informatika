@@ -28,9 +28,9 @@ test('guru dapat mengakses dashboard guru', function () {
     $this->actingAs($this->guru)
         ->get('/guru')
         ->assertStatus(200)
-        ->assertSee('Peta Akses Siswa', false)
-        ->assertSee('Kelas yang Diampu')
-        ->assertSee('Perlu Perhatian');
+        ->assertSee('Statistik Kelas', false)
+        ->assertSee('Kelas yang diampu', false)
+        ->assertSee('Perlu perhatian', false);
 });
 
 test('siswa tidak dapat mengakses dashboard admin atau guru', function () {

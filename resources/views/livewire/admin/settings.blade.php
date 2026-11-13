@@ -6,63 +6,110 @@
     <flux:heading size="xl" class="mb-6">Pengaturan Sekolah</flux:heading>
 
     <form wire:submit="save" class="space-y-6 max-w-3xl">
-        <!-- Identitas Aplikasi -->
+        <!-- Identitas Aplikasi & Logo -->
         <flux:card>
             <div class="space-y-6">
-                <flux:heading size="lg">Identitas Aplikasi</flux:heading>
+                <div>
+                    <flux:heading size="lg">Logo & Identitas Sekolah / Aplikasi</flux:heading>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Logo resmi yang diunggah akan otomatis digunakan di seluruh sistem: header navigasi, tab browser (favicon), notifikasi sistem/offline, dan kartu halaman login.</p>
+                </div>
                 
                 <div class="flex flex-col gap-4">
                     <div>
-                        <label class="text-sm font-semibold text-zinc-900 dark:text-white">Logo Aplikasi</label>
-                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Gunakan logo persegi, latar transparan, dan minim ruang kosong di tepi.</p>
+                        <label class="text-sm font-semibold text-zinc-900 dark:text-white">Logo Aplikasi & Favicon</label>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Format: PNG, JPG, SVG, atau WebP (Maks. 2MB). Disarankan berlatar transparan.</p>
                     </div>
 
-                    <div class="flex items-center gap-4">
+                    <div class="flex flex-wrap items-center gap-5">
                         @if ($trimmedPreviewData)
                             <!-- Pratinjau Hasil Auto-Trim baru -->
-                            <div class="relative w-20 h-20 rounded-2xl bg-white dark:bg-stone-800 border border-blue-300 dark:border-blue-700 shadow-md flex items-center justify-center overflow-hidden p-0 shrink-0 ring-2 ring-blue-500/20" style="isolation: isolate;">
+                            <div class="relative w-24 h-24 rounded-2xl bg-white dark:bg-stone-800 border-2 border-blue-400 dark:border-blue-600 shadow-md flex items-center justify-center overflow-hidden p-0 shrink-0 ring-4 ring-blue-500/10" style="isolation: isolate;">
                                 <img src="{{ $trimmedPreviewData }}" alt="Pratinjau Hasil Auto-Trim" class="w-full h-full object-cover rounded-[inherit]">
                                 <span class="absolute bottom-0 inset-x-0 bg-blue-600/90 text-white text-[9px] font-bold text-center py-0.5 uppercase tracking-wider">Trimmed</span>
                             </div>
                         @elseif ($logo)
                             <!-- Preview upload baru -->
-                            <div class="w-20 h-20 rounded-2xl bg-white dark:bg-stone-800 border border-zinc-200 dark:border-stone-700 shadow-sm flex items-center justify-center overflow-hidden p-0 shrink-0" style="isolation: isolate;">
+                            <div class="w-24 h-24 rounded-2xl bg-white dark:bg-stone-800 border-2 border-zinc-200 dark:border-stone-700 shadow-sm flex items-center justify-center overflow-hidden p-0 shrink-0" style="isolation: isolate;">
                                 <img src="{{ $logo->temporaryUrl() }}" alt="Preview Baru" class="w-full h-full object-cover rounded-[inherit]">
                             </div>
                         @elseif ($currentLogoUrl)
                             <!-- Logo tersimpan -->
-                            <div class="w-20 h-20 rounded-2xl bg-white dark:bg-stone-800 border border-zinc-200 dark:border-stone-700 shadow-sm flex items-center justify-center overflow-hidden p-0 shrink-0" style="isolation: isolate;">
+                            <div class="w-24 h-24 rounded-2xl bg-white dark:bg-stone-800 border-2 border-zinc-200 dark:border-stone-700 shadow-sm flex items-center justify-center overflow-hidden p-0 shrink-0" style="isolation: isolate;">
                                 <img src="{{ asset('storage/' . $currentLogoUrl) }}?v={{ time() }}" alt="Logo Aplikasi" class="w-full h-full object-cover rounded-[inherit]">
                             </div>
                         @else
                             <!-- Logo default -->
-                            <div class="w-20 h-20 rounded-2xl bg-[#2347C4] text-white flex items-center justify-center font-mono font-bold text-2xl shadow-sm shrink-0">
+                            <div class="w-24 h-24 rounded-2xl bg-[#2347C4] text-white flex items-center justify-center font-mono font-bold text-3xl shadow-sm shrink-0">
                                 { }
                             </div>
                         @endif
                         
-                        <div class="flex flex-col gap-2">
-                            <div class="flex items-center gap-2">
+                        <div class="flex flex-col gap-2.5 flex-1 min-w-[240px]">
+                            <div class="flex flex-wrap items-center gap-2">
                                 <input type="file" wire:model="logo" id="logoUpload" class="hidden" accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp">
-                                <label for="logoUpload" class="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-900/60 rounded-xl transition-colors">
+                                <label for="logoUpload" class="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors">
                                     <flux:icon.arrow-up-tray class="w-4 h-4" />
-                                    Pilih Logo Baru
+                                    Unggah Logo Baru
                                 </label>
                                 
                                 @if($currentLogoUrl)
-                                    <button type="button" wire:click="removeLogo" wire:confirm="Anda yakin ingin mengembalikan logo ke default?" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60 rounded-xl transition-colors">
-                                        Hapus
+                                    <button type="button" wire:click="removeLogo" wire:confirm="Anda yakin ingin menghapus logo kustom dan mengembalikan ke logo default?" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 rounded-xl transition-colors">
+                                        <flux:icon.trash class="w-4 h-4" />
+                                        Kembalikan ke Default
                                     </button>
                                 @endif
                             </div>
-                            <span class="text-xs text-zinc-500 dark:text-zinc-400">Maks. 2MB (PNG, JPG, SVG, WebP). Area kosong di sekeliling logo akan otomatis di-trim.</span>
+                            <span class="text-xs text-zinc-500 dark:text-zinc-400">Area kosong di tepi logo akan otomatis di-crop (auto-trim) agar logo tampil proporsional di seluruh halaman.</span>
                             <div wire:loading wire:target="logo" class="text-xs text-blue-600 font-medium animate-pulse">Memproses & mengoptimasi pratinjau logo...</div>
                         </div>
                     </div>
                     @error('logo') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+
+                    <!-- Pratinjau Tampilan Favicon & Header -->
+                    <div class="mt-2 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 space-y-3">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block">Pratinjau Penerapan Logo:</span>
+                        
+                        <div class="grid sm:grid-cols-2 gap-3 text-xs">
+                            <!-- Pratinjau Tab Browser -->
+                            <div class="p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 flex items-center gap-2.5">
+                                <div class="w-5 h-5 rounded bg-zinc-100 dark:bg-zinc-700 overflow-hidden shrink-0 flex items-center justify-center">
+                                    @if ($trimmedPreviewData)
+                                        <img src="{{ $trimmedPreviewData }}" class="w-full h-full object-cover">
+                                    @elseif ($logo)
+                                        <img src="{{ $logo->temporaryUrl() }}" class="w-full h-full object-cover">
+                                    @elseif ($currentLogoUrl)
+                                        <img src="{{ asset('storage/' . $currentLogoUrl) }}?v={{ time() }}" class="w-full h-full object-cover">
+                                    @else
+                                        <span class="text-[9px] font-bold text-blue-600 font-mono">{ }</span>
+                                    @endif
+                                </div>
+                                <span class="font-medium text-zinc-700 dark:text-zinc-300 truncate">
+                                    {{ $app_name ?: 'Ruang Informatika' }} &bull; Tab Browser
+                                </span>
+                            </div>
+
+                            <!-- Pratinjau Header Navigasi -->
+                            <div class="p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 flex items-center gap-2.5">
+                                <div class="w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-700 overflow-hidden shrink-0 flex items-center justify-center">
+                                    @if ($trimmedPreviewData)
+                                        <img src="{{ $trimmedPreviewData }}" class="w-full h-full object-cover">
+                                    @elseif ($logo)
+                                        <img src="{{ $logo->temporaryUrl() }}" class="w-full h-full object-cover">
+                                    @elseif ($currentLogoUrl)
+                                        <img src="{{ asset('storage/' . $currentLogoUrl) }}?v={{ time() }}" class="w-full h-full object-cover">
+                                    @else
+                                        <span class="text-[10px] font-bold text-blue-600 font-mono">{ }</span>
+                                    @endif
+                                </div>
+                                <span class="font-bold text-zinc-900 dark:text-white truncate">
+                                    {{ $app_name ?: 'Ruang Informatika' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="grid sm:grid-cols-2 gap-4">
+                <div class="grid sm:grid-cols-2 gap-4 pt-2">
                     <flux:input wire:model="app_name" label="Nama Sekolah / Aplikasi" placeholder="Contoh: Ruang Informatika" required />
                     <flux:input wire:model="app_subtitle" label="Subjudul (Opsional)" placeholder="Contoh: SMK Negeri 1 Tanjungpandan" />
                 </div>

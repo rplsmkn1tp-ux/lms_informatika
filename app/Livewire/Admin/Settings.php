@@ -117,6 +117,9 @@ class Settings extends Component
 
             Setting::setValue('app_logo', $paths['trimmed']);
             Setting::setValue('app_logo_original', $paths['original']);
+            Setting::setValue('logo_version', (string) time());
+            $logoService->syncPublicFavicons($paths['trimmed']);
+
             $this->currentLogoUrl = $paths['trimmed'];
             $this->trimmedPreviewData = null;
         }
@@ -139,6 +142,9 @@ class Settings extends Component
                 Setting::setValue('app_logo_original', null);
             }
             Setting::setValue('app_logo', null);
+            Setting::setValue('logo_version', (string) time());
+            app(LogoService::class)->restoreDefaultFavicons();
+
             $this->currentLogoUrl = null;
             $this->trimmedPreviewData = null;
         }
