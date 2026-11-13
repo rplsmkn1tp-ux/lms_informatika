@@ -142,11 +142,11 @@ class KerjakanTugas extends Component
                     $this->canResubmit = $this->assessment->isGroup() ? $this->isLeader : true;
                     $this->isLocked = !$this->canResubmit;
                     if ($this->isLocked && $this->assessment->isGroup()) {
-                        $this->lockReason = 'Pengumpulan ulang diizinkan dan dilakukan oleh Ketua Kelompok (' . ($this->myGroup?->leader?->name ?? 'Ketua') . ').';
+                        $this->lockReason = 'Tugas sudah Anda kirim. Pengumpulan ulang diizinkan dan dilakukan oleh Ketua Kelompok (' . ($this->myGroup?->leader?->name ?? 'Ketua') . ').';
                     }
                 } else {
                     $this->isLocked = true;
-                    $this->lockReason = 'Tugas telah dikumpulkan dan pengumpulan ulang tidak diizinkan.';
+                    $this->lockReason = 'Tugas sudah Anda kirim. Pengumpulan ulang tidak diizinkan oleh guru.';
                 }
             }
         } else {
@@ -383,6 +383,13 @@ class KerjakanTugas extends Component
         $rules = [];
         $messages = [];
 
+        if (!empty(trim($this->linkUrl))) {
+            $trimmedUrl = trim($this->linkUrl);
+            if (!preg_match('~^https?://~i', $trimmedUrl)) {
+                $this->linkUrl = 'https://' . $trimmedUrl;
+            }
+        }
+
         if (in_array('file', $allowedTypes)) {
             $rules['uploadedFile'] = 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,jpg,jpeg,png,webp|max:20480';
             $messages['uploadedFile.max'] = 'Ukuran file maksimal 20 MB.';
@@ -486,10 +493,13 @@ class KerjakanTugas extends Component
 
         $this->canResubmit = (bool) $this->assessment->allow_resubmit;
         $this->isLocked = !$this->canResubmit;
+        if ($this->isLocked) {
+            $this->lockReason = 'Tugas sudah Anda kirim. Pengumpulan ulang tidak diizinkan oleh guru.';
+        }
 
         session()->flash('success', $this->assessment->isGroup() 
-            ? 'Tugas kelompok berhasil dikumpulkan untuk seluruh anggota! Anda dapat memantau status penilaian dari guru di halaman ini.' 
-            : 'Tugas berhasil dikumpulkan! Anda dapat memantau status penilaian dari guru di halaman ini.');
+            ? 'Tugas kelompok sudah Anda kirim untuk seluruh anggota! Anda dapat memantau status penilaian dari guru di halaman ini.' 
+            : 'Tugas sudah Anda kirim! Anda dapat memantau status penilaian dari guru di halaman ini.');
     }
 
     public function removeUploadedFile(): void

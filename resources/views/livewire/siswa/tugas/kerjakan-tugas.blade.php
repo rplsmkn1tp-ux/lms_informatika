@@ -141,20 +141,20 @@
                 <p style="margin: 0; font-size: 13px; color: #92400E">Silakan perbaiki jawaban Anda di bawah ini dan klik tombol <strong>Kumpulkan Ulang Jawaban</strong>.</p>
             </div>
         @elseif($submission->status === \App\Models\Submission::STATUS_SUBMITTED)
-            <div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 20px; padding: 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+            <div style="background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: 20px; padding: 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
                 <div style="display: flex; align-items: center; gap: 14px">
-                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #E8EDFC; color: #2347C4; display: flex; align-items: center; justify-content: center">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #D1FAE5; color: #059669; display: flex; align-items: center; justify-content: center">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #15191F">Tugas Telah Dikumpulkan</h3>
-                        <span style="font-size: 12px; color: #4A515C">Dikirim pada {{ \Carbon\Carbon::parse($submission->submitted_at)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') }} WIB</span>
+                        <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: #065F46">Tugas sudah Anda kirim</h3>
+                        <span style="font-size: 13px; color: #047857">Terkirim pada {{ \Carbon\Carbon::parse($submission->submitted_at)->setTimezone('Asia/Jakarta')->translatedFormat('d F Y, H:i') }} WIB</span>
                         @if($submission->is_late)
                             <span style="font-size: 11px; font-weight: 700; color: #DC2626; margin-left: 6px">(Terlambat)</span>
                         @endif
                     </div>
                 </div>
-                <span style="font-size: 13px; font-weight: 700; color: #B45309; background: #FEF3C7; padding: 6px 14px; border-radius: 10px;">
+                <span style="font-size: 13px; font-weight: 700; color: #065F46; background: #D1FAE5; padding: 6px 14px; border-radius: 10px; border: 1px solid #A7F3D0">
                     Menunggu Penilaian Guru
                 </span>
             </div>
@@ -407,7 +407,7 @@
             </div>
         @endif
 
-        <form wire:submit.prevent="submit" style="display: flex; flex-direction: column; gap: 20px">
+        <form wire:submit="submit" novalidate style="display: flex; flex-direction: column; gap: 20px">
             @php
                 $types = $assessment->submission_types ?? ['file'];
             @endphp
@@ -443,7 +443,10 @@
                     @endif
 
                     @if(!$isLocked)
-                        <div x-data="{ isDragging: false }" style="display: flex; flex-direction: column; gap: 10px;">
+                        <div x-data="{ isDragging: false, uploadError: null }" 
+                             x-on:livewire-upload-error="uploadError = 'Gagal mengunggah berkas. Pastikan ukuran file tidak melebihi batas 20 MB dan format sesuai.'"
+                             x-on:livewire-upload-start="uploadError = null"
+                             style="display: flex; flex-direction: column; gap: 10px;">
                             <!-- Custom Interactive Upload Dropzone -->
                             <div 
                                 @dragover.prevent="isDragging = true"
@@ -466,7 +469,7 @@
                                          :style="isDragging ? 'background-color: #2347C4; color: #FFFFFF; border-color: #2347C4;' : ''">
                                         <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                            <polyline points="17 8 12 3 7 8"></polyline>
+                                             <polyline points="17 8 12 3 7 8"></polyline>
                                             <line x1="12" y1="3" x2="12" y2="15"></line>
                                         </svg>
                                     </div>
@@ -491,6 +494,14 @@
                                 <svg class="animate-spin h-4 w-4 text-[#2347C4] shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                 <span>Sedang memproses & mengunggah berkas ke sistem... Mohon tunggu sebentar.</span>
                             </div>
+
+                            <!-- Upload Client Error from Alpine -->
+                            <template x-if="uploadError">
+                                <div class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-red-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    <span x-text="uploadError"></span>
+                                </div>
+                            </template>
 
                             <!-- Error Message -->
                             @error('uploadedFile')
@@ -577,19 +588,60 @@
                 </div>
             @endif
 
-            <!-- Tombol Kumpulkan -->
+            <!-- Pesan Notifikasi Tepat di Atas Tombol (Mudah Terlihat Oleh Siswa) -->
+            @if(session()->has('error'))
+                <div style="padding: 12px 16px; border-radius: 12px; background: #FEE2E2; border: 1px solid #FECACA; color: #B91C1C; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            <!-- Tombol Kumpulkan / Status Tugas Sudah Terkirim -->
             @if(!$isLocked)
-                <div style="display: flex; justify-content: flex-end; padding-top: 12px; border-top: 1px solid #EDEEEA">
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid #EDEEEA">
                     <button 
                         type="submit" 
                         wire:loading.attr="disabled"
-                        style="min-height: 46px; padding: 0 28px; border-radius: 12px; background: #2347C4; color: #FFFFFF; font-weight: 700; font-size: 15px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s;"
+                        wire:target="submit,uploadedFile"
+                        style="min-height: 48px; padding: 0 32px; border-radius: 12px; background: #2347C4; color: #FFFFFF; font-weight: 700; font-size: 15px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(35, 71, 196, 0.25);"
                         onmouseover="this.style.backgroundColor='#1A3596'"
                         onmouseout="this.style.backgroundColor='#2347C4'"
                     >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        <span>{{ $submission && $submission->status === \App\Models\Submission::STATUS_REVISION ? 'Kumpulkan Ulang Jawaban Revisi' : 'Kumpulkan Tugas' }}</span>
+                        <span wire:loading.remove wire:target="submit,uploadedFile" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <span>{{ $submission ? ($submission->status === \App\Models\Submission::STATUS_REVISION ? 'Kumpulkan Ulang Jawaban Revisi' : 'Kirim Ulang Tugas') : 'Kirim Tugas' }}</span>
+                        </span>
+                        <span wire:loading wire:target="uploadedFile" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span>Mengunggah Berkas...</span>
+                        </span>
+                        <span wire:loading wire:target="submit" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span>Sedang Mengirim Tugas...</span>
+                        </span>
                     </button>
+                </div>
+            @else
+                <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid #EDEEEA">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 20px; border-radius: 16px; background: #ECFDF5; border: 1.5px solid #A7F3D0;">
+                        <div style="display: flex; align-items: center; gap: 12px">
+                            <div style="width: 42px; height: 42px; border-radius: 12px; background: #D1FAE5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: #065F46">Tugas sudah Anda kirim</h4>
+                                <p style="margin: 2px 0 0; font-size: 12px; color: #047857">
+                                    @if($submission && $submission->submitted_at)
+                                        Terkirim pada {{ \Carbon\Carbon::parse($submission->submitted_at)->setTimezone('Asia/Jakarta')->translatedFormat('d F Y, H:i') }} WIB.
+                                    @endif
+                                    {{ $lockReason ?: 'Menunggu pemeriksaan dan penilaian dari guru.' }}
+                                </p>
+                            </div>
+                        </div>
+                        <span style="font-size: 12px; font-weight: 700; color: #065F46; background: #D1FAE5; padding: 6px 14px; border-radius: 10px; border: 1px solid #A7F3D0;">
+                            {{ $submission && $submission->status === \App\Models\Submission::STATUS_GRADED ? 'Sudah Dinilai' : 'Menunggu Penilaian Guru' }}
+                        </span>
+                    </div>
                 </div>
             @endif
         </form>

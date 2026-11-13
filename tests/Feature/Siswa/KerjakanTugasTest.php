@@ -107,7 +107,40 @@ test('siswa can submit assessment successfully', function () {
 
     Livewire::test(KerjakanTugas::class, ['assessment' => $this->assessment])
         ->set('textContent', 'Jawaban teks tugas')
-        ->call('submit');
+        ->call('submit')
+        ->assertSee('Tugas sudah Anda kirim');
 
     $this->assertTrue(Submission::where('student_id', $this->student->id)->where('status', 'dikumpulkan')->exists());
+});
+
+test('submitting link automatically prepends https if missing and shows submitted status', function () {
+    $this->actingAs($this->student);
+
+    Livewire::test(KerjakanTugas::class, ['assessment' => $this->assessment])
+        ->set('linkUrl', 'drive.google.com/file/d/12345/view')
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSee('Tugas sudah Anda kirim');
+
+    $submission = Submission::where('student_id', $this->student->id)->first();
+    expect($submission)->not->toBeNull();
+    expect($submission->link_url)->toBe('https://drive.google.com/file/d/12345/view');
+    expect($submission->status)->toBe('dikumpulkan');
+});
+
+test('siswa with existing submitted task sees "Tugas sudah Anda kirim" card instead of submit button', function () {
+    $this->actingAs($this->student);
+
+    Submission::create([
+        'assessment_id' => $this->assessment->id,
+        'student_id' => $this->student->id,
+        'attempt' => 1,
+        'status' => 'dikumpulkan',
+        'submitted_at' => now(),
+        'text_content' => 'Sudah dikerjakan'
+    ]);
+
+    Livewire::test(KerjakanTugas::class, ['assessment' => $this->assessment])
+        ->assertSee('Tugas sudah Anda kirim')
+        ->assertDontSee('Kirim Tugas');
 });
