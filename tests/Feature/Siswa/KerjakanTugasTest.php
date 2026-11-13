@@ -144,3 +144,17 @@ test('siswa with existing submitted task sees "Tugas sudah Anda kirim" card inst
         ->assertSee('Tugas sudah Anda kirim')
         ->assertDontSee('Kirim Tugas');
 });
+
+test('submit button does not render conflicting inline display styles on loading indicators', function () {
+    $this->actingAs($this->student);
+
+    $response = Livewire::test(KerjakanTugas::class, ['assessment' => $this->assessment]);
+    
+    // Initial state: Kirim Tugas is visible, loading states are not forcing inline-flex
+    $response->assertSee('Kirim Tugas');
+    $html = $response->html();
+    
+    // Ensure the loading indicators do NOT have inline style="display: inline-flex;" overriding Livewire visibility
+    expect($html)->not->toContain('wire:loading wire:target="submit" style="display: inline-flex;');
+    expect($html)->not->toContain('wire:loading wire:target="uploadedFile" style="display: inline-flex;');
+});

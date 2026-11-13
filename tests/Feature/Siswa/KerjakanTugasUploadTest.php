@@ -11,6 +11,7 @@ use Livewire\Livewire;
 test('siswa can see styled upload button and select file', function () {
     $year = AcademicYear::create(['name' => '2026/2027', 'semester' => 'ganjil', 'is_active' => true]);
     $class = Classroom::create(['name' => 'X-RPL-Test', 'join_code' => 'RPLTEST1', 'academic_year_id' => $year->id, 'grade' => '10']);
+    $guru = User::factory()->create(['role' => 'guru', 'status' => 'active']);
     $student = User::factory()->create(['role' => 'siswa', 'status' => 'active']);
     $student->classrooms()->attach($class->id, ['academic_year_id' => $year->id]);
 
@@ -19,7 +20,7 @@ test('siswa can see styled upload button and select file', function () {
         'type' => 'tugas',
         'status' => 'published',
         'submission_types' => ['file'],
-        'created_by' => 1,
+        'created_by' => $guru->id,
     ]);
     $assessment->classrooms()->attach($class->id);
 
