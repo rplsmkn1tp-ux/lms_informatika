@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Panduan Penggunaan LMS Ruang Informatika untuk Siswa</title>
+    <style>
+        @page {
+            margin: 20mm 15mm 20mm 15mm;
+            @bottom-right {
+                content: counter(page);
+            }
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #1e293b;
+            line-height: 1.5;
+            font-size: 11pt;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            border-bottom: 2px solid #2347C4;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .logo-box {
+            background-color: #2347C4;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 20pt;
+            width: 48px;
+            height: 48px;
+            text-align: center;
+            vertical-align: middle;
+            border-radius: 10px;
+            font-family: monospace;
+        }
+        .header-title {
+            padding-left: 15px;
+            vertical-align: middle;
+        }
+        .header-title h1 {
+            margin: 0;
+            font-size: 18pt;
+            color: #2347C4;
+            font-weight: bold;
+        }
+        .header-title p {
+            margin: 3px 0 0 0;
+            font-size: 10pt;
+            color: #64748b;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #ede9fe;
+            color: #6d28d9;
+            font-weight: bold;
+            font-size: 8pt;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        h2 {
+            color: #0f172a;
+            font-size: 14pt;
+            border-left: 4px solid #2347C4;
+            padding-left: 10px;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        h3 {
+            color: #334155;
+            font-size: 12pt;
+            margin-top: 18px;
+            margin-bottom: 8px;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+        .alert-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #3b82f6;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        .alert-box.important {
+            background-color: #fffbeb;
+            border-color: #fde68a;
+            border-left-color: #f59e0b;
+            color: #92400e;
+        }
+        .alert-box.tip {
+            background-color: #f5f3ff;
+            border-color: #ddd6fe;
+            border-left-color: #8b5cf6;
+            color: #5b21b6;
+        }
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: block;
+        }
+        table.content-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        table.content-table th, table.content-table td {
+            border: 1px solid #cbd5e1;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        table.content-table th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: bold;
+        }
+        ol, ul {
+            margin-top: 0;
+            margin-bottom: 12px;
+            padding-left: 22px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
+        .code-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 9.5pt;
+            color: #334155;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #2347C4;
+            color: #ffffff;
+            font-weight: bold;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            text-align: center;
+            border-radius: 50%;
+            font-size: 9pt;
+            margin-right: 6px;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 8.5pt;
+            color: #94a3b8;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <table class="header-table">
+            <tr>
+                <td style="width: 50px;">
+                    <div class="logo-box">{ }</div>
+                </td>
+                <td class="header-title">
+                    <h1>Ruang Informatika LMS</h1>
+                    <p>Buku Panduan Siswa: Membaca Materi & Pengerjaan Tugas Berkelompok</p>
+                </td>
+                <td style="text-align: right; vertical-align: middle;">
+                    <span class="badge">Panduan Resmi Siswa</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Bagian 1 -->
+    <h2>BAGIAN 1: Alur Membaca & Mempelajari Materi Pembelajaran</h2>
+    <p>
+        Modul materi pada LMS Ruang Informatika disusun berjenjang sesuai Kurikulum Informatika agar Anda dapat belajar secara mandiri, runtut, dan terukur.
+    </p>
+
+    <h3>1. Navigasi Menuju Modul Materi</h3>
+    <ol>
+        <li><strong>Akses Menu Materi:</strong> Klik menu <strong>Materi</strong> pada navigasi atas (laptop/komputer) atau bilah navigasi bawah (smartphone).</li>
+        <li><strong>Pilih Elemen Informatika:</strong> Pilih elemen kompetensi yang sedang dipelajari (misal: <em>Berpikir Komputasional</em>, <em>Jaringan Komputer & Internet</em>, atau <em>Algoritma & Pemrograman</em>).</li>
+        <li><strong>Pilih Tujuan Pembelajaran (TP):</strong> Klik TP yang sedang aktif, lalu pilih <strong>Judul Materi</strong> yang ingin dipelajari.</li>
+    </ol>
+
+    <h3>2. Tiga Tab Belajar Utama</h3>
+    <table class="content-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Nama Tab</th>
+                <th style="width: 45%;">Isi & Aktivitas</th>
+                <th style="width: 30%;">Tindakan Siswa</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Materi Belajar</strong></td>
+                <td>Berisi bahan bacaan literasi (PDF), video penjelasan materi, serta kartu tugas terkait.</td>
+                <td>Baca dokumen PDF, tonton video tutorial, dan klik tombol tanda selesai.</td>
+            </tr>
+            <tr>
+                <td><strong>Diskusi Kelas</strong></td>
+                <td>Ruang forum interaktif tanya jawab antara siswa dengan guru dan teman sekelas.</td>
+                <td>Ketik pertanyaan baru atau balas (<em>reply</em>) diskusi guru/teman.</td>
+            </tr>
+            <tr>
+                <td><strong>Catatan Pribadi</strong></td>
+                <td>Buku catatan digital pribadi siswa untuk menulis ringkasan konsep, kode, atau rumus.</td>
+                <td>Tulis rangkuman Anda lalu klik <strong>Simpan Catatan</strong> (bersifat privat).</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>3. Tiga Langkah Kegiatan Belajar (Tab Materi Belajar)</h3>
+    <ul>
+        <li><strong>Langkah 1: Baca Bahan Bacaan (Literasi PDF)</strong><br>
+            Dokumen modul ajar ditampilkan langsung di layar. Jika terdapat lebih dari 1 file dokumen, klik tab pilihan dokumen di atas penampil berkas. Anda dapat mengklik tombol <em>"Unduh File Lengkap"</em> untuk membaca luring. Setelah selesai membaca, klik tombol <strong>"Tandai Sudah Dibaca"</strong> (berubah hijau dengan ikon centang).
+        </li>
+        <li><strong>Langkah 2: Tonton Video Penjelasan</strong><br>
+            Tonton video penjelasan interaktif yang disematkan guru sampai selesai, kemudian klik tombol <strong>"Tandai Sudah Ditonton"</strong>.
+        </li>
+        <li><strong>Langkah 3: Kerjakan Tugas Terkait</strong><br>
+            Jika materi memiliki tugas terhubung, kartu tugas akan tampil di bagian bawah lengkap dengan status pengerjaannya.
+        </li>
+    </ul>
+
+    <div class="alert-box">
+        <span class="alert-title">Indikator Ketuntasan Progres Belajar:</span>
+        Perhatikan bar progres di atas materi (misal: <em>2 dari 2 aktivitas telah diselesaikan</em>). Klik tombol <strong>"Tandai Materi Selesai"</strong> sebagai bukti ketuntasan modul ajar Anda.
+    </div>
+
+    <!-- Halaman Baru -->
+    <div class="page-break"></div>
+
+    <!-- Bagian 2 -->
+    <h2>BAGIAN 2: Alur Mengerjakan Tugas Berkelompok</h2>
+    <p>
+        Tugas kelompok melatih Anda bekerja sama dalam menyelesaikan proyek Informatika, analisis data, pembuatan presentasi, maupun pemrograman.
+    </p>
+
+    <h3>1. Menemukan Tugas Kelompok</h3>
+    <ol>
+        <li>Buka menu <strong>Tugas</strong>.</li>
+        <li>Cari kartu tugas yang memiliki lencana ungu: <strong>Tugas Kelompok (Maks. X Siswa)</strong>.</li>
+        <li>Klik tombol <strong>Kerjakan Tugas</strong>.</li>
+    </ol>
+
+    <h3>2. Membentuk atau Bergabung ke Kelompok</h3>
+    <p>Jika Anda belum memiliki kelompok, akan tampil panel <em>"Anda Belum Memiliki Kelompok"</em>. Terdapat dua pilihan:</p>
+
+    <ul>
+        <li><strong>Opsi A: Membentuk Kelompok Baru (Menjadi Ketua)</strong>
+            <ol>
+                <li>Ketik <strong>Nama Kelompok</strong> pada formulir (contoh: <em>Kelompok 1 - Network Team</em>).</li>
+                <li>Beri centang pada nama teman sekelas yang belum bergabung ke kelompok lain.</li>
+                <li>Klik tombol <strong>"Bentuk Kelompok & Jadi Ketua"</strong>. Anda otomatis terdaftar sebagai <strong>Ketua Kelompok</strong>.</li>
+            </ol>
+        </li>
+        <li><strong>Opsi B: Menjadi Anggota (Dimasukkan oleh Teman)</strong>
+            <br>
+            Konfirmasikan nama atau NISN Anda kepada teman sekelas yang menjadi ketua kelompok. Setelah ketua menambahkan Anda, halaman tugas Anda otomatis menampilkan kelompok tersebut.
+        </li>
+    </ul>
+
+    <h3>3. Manajemen Anggota & Pengisian Laporan Kontribusi</h3>
+    <ul>
+        <li><strong>Menambah Anggota:</strong> Jika kuota belum penuh, ketua kelompok dapat memilih siswa yang belum berkelompok pada menu pilihan lalu klik <em>"Tambah ke Kelompok"</em>.</li>
+        <li><strong>Keluar / Mengeluarkan Anggota:</strong> Anggota dapat menekan tombol <em>"Keluar Kelompok"</em> atau ketua dapat mengeluarkan anggota sebelum tugas dikumpulkan.</li>
+        <li><strong>Laporan Kontribusi:</strong> Ketua kelompok <strong>wajib mengisi</strong> kolom <em>"Laporan Peran & Kontribusi Anggota"</em>. Kolom ini dibaca langsung oleh guru saat penilaian untuk memberikan nilai secara adil dan objektif.</li>
+    </ul>
+
+    <div class="alert-box tip">
+        <span class="alert-title">Contoh Pengisian Laporan Kontribusi Anggota:</span>
+        <div class="code-box">1. Farrel (Ketua): Membuat slide presentasi PPT & coding program
+2. Budi (Anggota): Mencari referensi studi kasus & merancang topologi
+3. Siti (Anggota): Pengujian sistem & penyusunan dokumen laporan Word</div>
+    </div>
+
+    <h3>4. Pengumpulan Berkas Jawaban Kelompok</h3>
+    <div class="alert-box important">
+        <span class="alert-title">PENTING: Pengumpulan Dilakukan oleh KETUA KELOMPOK</span>
+        Pengumpulan tugas diwakili oleh Ketua Kelompok. Anggota kelompok dapat melihat berkas dan status secara transparan melalui akun masing-masing. Saat ketua menekan tombol <strong>"Kirim Tugas"</strong>, sistem secara otomatis menyimpan dan mengaitkan pengumpulan tersebut ke <strong>seluruh akun anggota kelompok</strong>.
+    </div>
+
+    <ol>
+        <li><strong>Format Berkas yang Didukung:</strong>
+            <ul>
+                <li><strong>Upload File:</strong> Berkas PPT/PPTX, PDF, Word, Excel, Gambar, atau ZIP (Maksimal 20 MB).</li>
+                <li><strong>Tautan Tugas (URL):</strong> Link Google Drive, Canva, Figma, atau GitHub.</li>
+                <li><strong>Catatan Teks:</strong> Keterangan atau rangkuman jawaban hasil kerja tim.</li>
+            </ul>
+        </li>
+        <li>Ketua kelompok menekan tombol <strong>"Kirim Tugas"</strong>.</li>
+        <li>Layar Anda dan seluruh anggota kelompok akan berubah menjadi kartu hijau bertuliskan:
+            <br><strong>✓ Tugas sudah Anda kirim</strong> (disertai tanggal dan jam pengiriman WIB).
+        </li>
+    </ol>
+
+    <h3>5. Melihat Nilai & Revisi</h3>
+    <ul>
+        <li>Setelah diperiksa guru, skor nilai dan umpan balik (*feedback*) guru akan tampil di halaman tugas serta pada menu navigasi <strong>Nilai / Rapor</strong>.</li>
+        <li>Jika guru meminta perbaikan, tombol akan berubah menjadi <strong>"Kumpulkan Ulang Jawaban Revisi"</strong>.</li>
+    </ul>
+
+    <div class="footer">
+        © Ruang Informatika LMS - SMK Negeri 1 Tanjungpandan • Panduan Resmi Peserta Didik
+    </div>
+
+</body>
+</html>
