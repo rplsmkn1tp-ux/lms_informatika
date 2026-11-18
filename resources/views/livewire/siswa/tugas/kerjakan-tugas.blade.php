@@ -2,6 +2,13 @@
     <!-- Breadcrumb -->
     <nav aria-label="Breadcrumb" style="font-size: 13px; color: #4A515C; display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
         <a href="{{ route('siswa.tugas') }}" wire:navigate style="color: #4A515C; text-decoration: none; font-weight: 500;">Daftar Tugas</a>
+        @if($assessment->lesson && $assessment->lesson->siswa_url)
+            <span aria-hidden="true">/</span>
+            <a href="{{ $assessment->lesson->siswa_url }}" wire:navigate style="color: #2347C4; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <span>Materi: {{ $assessment->lesson->title }}</span>
+            </a>
+        @endif
         <span aria-hidden="true">/</span>
         <span style="color: #15191F; font-weight: 700; max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $assessment->title }}</span>
     </nav>
@@ -18,9 +25,16 @@
                         </span>
                     @endif
                     @if($assessment->lesson)
-                        <span style="padding: 4px 10px; border-radius: 8px; background: #E0E7FF; color: #3730A3; font-size: 12px; font-weight: 600">
-                            Materi: {{ $assessment->lesson->title }}
-                        </span>
+                        @if($assessment->lesson->siswa_url)
+                            <a href="{{ $assessment->lesson->siswa_url }}" wire:navigate title="Kembali ke materi pembelajaran" style="padding: 4px 12px; border-radius: 8px; background: #EEF2FF; color: #2347C4; font-size: 12px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #C7D2FE; transition: all 0.2s;" onmouseover="this.style.background='#E0E7FF'" onmouseout="this.style.background='#EEF2FF'">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                                <span>Materi: {{ $assessment->lesson->title }}</span>
+                            </a>
+                        @else
+                            <span style="padding: 4px 10px; border-radius: 8px; background: #E0E7FF; color: #3730A3; font-size: 12px; font-weight: 600">
+                                Materi: {{ $assessment->lesson->title }}
+                            </span>
+                        @endif
                     @endif
                     @if($assessment->isGroup())
                         <span style="padding: 4px 10px; border-radius: 8px; background: #EDE9FE; color: #6D28D9; font-size: 12px; font-weight: 700">
@@ -65,24 +79,42 @@
             </div>
         @endif
 
-        <!-- Lampiran Guru -->
+        <!-- Berkas Template LKPD / Lampiran Guru -->
         @if(!empty($assessment->teacher_attachments))
             <div style="margin-top: 8px; padding-top: 16px; border-top: 1px solid #EDEEEA; display: flex; flex-direction: column; gap: 10px">
-                <span style="font-size: 12px; font-weight: 700; color: #4A515C; text-transform: uppercase; letter-spacing: 0.05em">Lampiran dari Guru:</span>
+                <span style="font-size: 12px; font-weight: 700; color: #4A515C; text-transform: uppercase; letter-spacing: 0.05em">Berkas Template Lembar Kerja & Lampiran Guru:</span>
                 <div style="display: flex; flex-wrap: wrap; gap: 10px">
                     @foreach($assessment->teacher_attachments as $idx => $att)
                         @if(($att['type'] ?? '') === 'file')
-                            <a href="{{ route('guru.tugas.download-attachment', [$assessment->id, $idx]) }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px; background: #F4F5F2; border: 1px solid #E2E4DF; color: #2347C4; font-size: 13px; font-weight: 600; text-decoration: none;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                                <span>{{ $att['name'] }}</span>
+                            <a href="{{ route('guru.tugas.download-attachment', [$assessment->id, $idx]) }}" style="display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 12px; background: #EEF2FF; border: 1.5px solid #C7D7FE; color: #2347C4; font-size: 13px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 6px rgba(35, 71, 196, 0.1); transition: all 0.2s;" onmouseover="this.style.background='#E0E7FF'" onmouseout="this.style.background='#EEF2FF'">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span>Unduh Template LKPD: {{ $att['name'] }}</span>
                             </a>
                         @else
-                            <a href="{{ $att['url'] }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px; background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; font-size: 13px; font-weight: 600; text-decoration: none;">
+                            <a href="{{ $att['url'] }}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px; background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; font-size: 13px; font-weight: 600; text-decoration: none;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                                 <span>{{ $att['name'] }}</span>
                             </a>
                         @endif
                     @endforeach
+                </div>
+            </div>
+        @endif
+
+        <!-- Kriteria Ketercapaian Tujuan Pembelajaran (KKTP / Rubrik Penilaian) -->
+        @if(!empty($assessment->rubric))
+            <div style="margin-top: 14px; padding: 16px 20px; border-radius: 16px; background: #F0FDF4; border: 1.5px solid #BBF7D0; display: flex; flex-direction: column; gap: 8px">
+                <div style="display: flex; align-items: center; gap: 8px; color: #166534;">
+                    <div style="width: 28px; height: 28px; border-radius: 8px; background: #DCFCE7; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                        🎯
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: block">Kriteria Ketercapaian Tujuan Pembelajaran (KKTP)</span>
+                        <span style="font-size: 11px; color: #15803D">Standar indikator dan rubrik penilaian yang harus Anda capai untuk tugas ini</span>
+                    </div>
+                </div>
+                <div style="font-size: 13px; color: #14532D; line-height: 1.6; white-space: pre-line; padding: 12px 16px; background: #FFFFFF; border-radius: 12px; border: 1px solid #86EFAC">
+                    {{ $assessment->rubric }}
                 </div>
             </div>
         @endif
@@ -141,28 +173,53 @@
                 <p style="margin: 0; font-size: 13px; color: #92400E">Silakan perbaiki jawaban Anda di bawah ini dan klik tombol <strong>Kumpulkan Ulang Jawaban</strong>.</p>
             </div>
         @elseif($submission->status === \App\Models\Submission::STATUS_SUBMITTED)
-            <div style="background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: 20px; padding: 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
-                <div style="display: flex; align-items: center; gap: 14px">
-                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #D1FAE5; color: #059669; display: flex; align-items: center; justify-content: center">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            <div style="background: #ECFDF5; border: 1.5px solid #A7F3D0; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+                    <div style="display: flex; align-items: center; gap: 14px">
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: #D1FAE5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: #065F46">Tugas sudah Anda kirim</h3>
+                            <span style="font-size: 13px; color: #047857">Terkirim pada {{ \Carbon\Carbon::parse($submission->submitted_at)->setTimezone('Asia/Jakarta')->translatedFormat('d F Y, H:i') }} WIB</span>
+                            @if($submission->is_late)
+                                <span style="font-size: 11px; font-weight: 700; color: #DC2626; margin-left: 6px">(Terlambat)</span>
+                            @endif
+                        </div>
                     </div>
-                    <div>
-                        <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: #065F46">Tugas sudah Anda kirim</h3>
-                        <span style="font-size: 13px; color: #047857">Terkirim pada {{ \Carbon\Carbon::parse($submission->submitted_at)->setTimezone('Asia/Jakarta')->translatedFormat('d F Y, H:i') }} WIB</span>
-                        @if($submission->is_late)
-                            <span style="font-size: 11px; font-weight: 700; color: #DC2626; margin-left: 6px">(Terlambat)</span>
-                        @endif
-                    </div>
+                    <span style="font-size: 13px; font-weight: 700; color: #065F46; background: #D1FAE5; padding: 6px 14px; border-radius: 10px; border: 1px solid #A7F3D0">
+                        Menunggu Penilaian Guru
+                    </span>
                 </div>
-                <span style="font-size: 13px; font-weight: 700; color: #065F46; background: #D1FAE5; padding: 6px 14px; border-radius: 10px; border: 1px solid #A7F3D0">
-                    Menunggu Penilaian Guru
-                </span>
             </div>
         @endif
     @endif
 
-    <!-- Pesan jika terkunci -->
-    @if($isLocked && !empty($lockReason) && !$assessment->isGroup())
+    <!-- Pesan jika terkunci karena belum membaca materi -->
+    @if($isLocked && $isLessonLocked)
+        <div style="padding: 24px; border-radius: 20px; background: #FFFBEB; border: 1px solid #FCD34D; color: #78350F; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                <div style="display: flex; align-items: flex-start; gap: 14px;">
+                    <div style="width: 48px; height: 48px; border-radius: 14px; background: #FEF3C7; color: #B45309; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+                        🔒
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #78350F">Tugas Terkunci: Wajib Membaca Materi Terlebih Dahulu</h3>
+                        <p style="margin: 6px 0 0; font-size: 13.5px; color: #92400E; line-height: 1.5;">
+                            {{ $lockReason }}
+                        </p>
+                    </div>
+                </div>
+                @if($assessment->lesson && $assessment->lesson->siswa_url)
+                    <a href="{{ $assessment->lesson->siswa_url }}" 
+                       style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px; background: #2347C4; color: #FFFFFF; font-weight: 700; font-size: 13px; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 12px rgba(35, 71, 196, 0.25);">
+                        <span>Buka & Pelajari Materi Sekarang</span>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </a>
+                @endif
+            </div>
+        </div>
+    @elseif($isLocked && !empty($lockReason) && !$assessment->isGroup())
         <div style="padding: 16px 20px; border-radius: 16px; background: #F4F5F2; border: 1px solid #E2E4DF; color: #4A515C; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #6B7280"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             <span>{{ $lockReason }}</span>
@@ -170,7 +227,7 @@
     @endif
 
     <!-- Bagian Tugas Kelompok -->
-    @if($assessment->isGroup())
+    @if($assessment->isGroup() && !($isLocked && $isLessonLocked))
         @if($myGroup)
             <!-- Kartu Informasi Kelompok Siswa -->
             <div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 18px">
@@ -271,7 +328,12 @@
                             >
                                 <option value="">-- Pilih Siswa yang Belum Memiliki Kelompok --</option>
                                 @foreach($availableStudents as $avail)
-                                    <option value="{{ $avail->id }}">{{ $avail->name }} (NISN: {{ $avail->nisn ?? '-' }})</option>
+                                    @php
+                                        $isReady = $avail->is_reading_completed ?? true;
+                                    @endphp
+                                    <option value="{{ $avail->id }}" {{ !$isReady ? 'disabled' : '' }}>
+                                        {{ $isReady ? '🟢' : '🔒 [Belum Baca Materi]' }} {{ $avail->name }} (NISN: {{ $avail->nisn ?? '-' }})
+                                    </option>
                                 @endforeach
                             </select>
                             <button 
@@ -352,14 +414,29 @@
                         </label>
                         <div style="max-height: 180px; overflow-y: auto; padding: 10px; background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 10px; display: flex; flex-direction: column; gap: 6px">
                             @forelse($availableStudents as $avail)
-                                <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #374151; cursor: pointer; padding: 4px 6px; border-radius: 6px;">
-                                    <input 
-                                        type="checkbox" 
-                                        wire:model="selectedMemberIds" 
-                                        value="{{ $avail->id }}"
-                                        style="width: 16px; height: 16px; accent-color: #6D28D9; cursor: pointer"
-                                    >
-                                    <span>{{ $avail->name }} <span style="font-size: 11px; color: #9CA3AF">(NISN: {{ $avail->nisn ?? '-' }})</span></span>
+                                @php
+                                    $isReady = $avail->is_reading_completed ?? true;
+                                @endphp
+                                <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: {{ $isReady ? '#374151' : '#9CA3AF' }}; cursor: {{ $isReady ? 'pointer' : 'not-allowed' }}; padding: 6px 8px; border-radius: 8px; background: {{ $isReady ? 'transparent' : '#F9FAFB' }};">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <input 
+                                            type="checkbox" 
+                                            wire:model="selectedMemberIds" 
+                                            value="{{ $avail->id }}"
+                                            {{ !$isReady ? 'disabled' : '' }}
+                                            style="width: 16px; height: 16px; accent-color: #6D28D9; cursor: {{ $isReady ? 'pointer' : 'not-allowed' }}"
+                                        >
+                                        <span>{{ $avail->name }} <span style="font-size: 11px; color: #9CA3AF">(NISN: {{ $avail->nisn ?? '-' }})</span></span>
+                                    </div>
+                                    @if($isReady)
+                                        <span style="font-size: 11px; font-weight: 700; color: #047857; background: #D1FAE5; padding: 2px 8px; border-radius: 6px;">
+                                            🟢 Siap Gabung
+                                        </span>
+                                    @else
+                                        <span style="font-size: 11px; font-weight: 600; color: #B45309; background: #FEF3C7; padding: 2px 8px; border-radius: 6px;">
+                                            🔒 Belum Baca Materi
+                                        </span>
+                                    @endif
                                 </label>
                             @empty
                                 <div style="font-size: 12px; color: #9CA3AF; font-style: italic; padding: 8px">
@@ -386,6 +463,7 @@
     @endif
 
     <!-- Form Pengumpulan Jawaban -->
+    @if(!($isLocked && $isLessonLocked))
     <div style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 20px">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EDEEEA; padding-bottom: 12px">
             <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #15191F">
@@ -598,7 +676,15 @@
 
             <!-- Tombol Kumpulkan / Status Tugas Sudah Terkirim -->
             @if(!$isLocked)
-                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid #EDEEEA">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 14px; border-top: 1px solid #EDEEEA">
+                    <div>
+                        @if($assessment->lesson && $assessment->lesson->siswa_url)
+                            <a href="{{ $assessment->lesson->siswa_url }}" wire:navigate style="min-height: 44px; padding: 0 20px; border-radius: 12px; background: #F4F5F2; color: #4A515C; font-weight: 600; font-size: 13px; text-decoration: none; border: 1px solid #E2E4DF; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='#EAECE8'; this.style.color='#15191F';" onmouseout="this.style.background='#F4F5F2'; this.style.color='#4A515C';">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                                <span>Kembali ke Materi</span>
+                            </a>
+                        @endif
+                    </div>
                     <button 
                         type="submit" 
                         wire:loading.attr="disabled"
@@ -622,7 +708,7 @@
                     </button>
                 </div>
             @else
-                <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid #EDEEEA">
+                <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 16px; border-top: 1px solid #EDEEEA">
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 20px; border-radius: 16px; background: #ECFDF5; border: 1.5px solid #A7F3D0;">
                         <div style="display: flex; align-items: center; gap: 12px">
                             <div style="width: 42px; height: 42px; border-radius: 12px; background: #D1FAE5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -638,12 +724,24 @@
                                 </p>
                             </div>
                         </div>
-                        <span style="font-size: 12px; font-weight: 700; color: #065F46; background: #D1FAE5; padding: 6px 14px; border-radius: 10px; border: 1px solid #A7F3D0;">
-                            {{ $submission && $submission->status === \App\Models\Submission::STATUS_GRADED ? 'Sudah Dinilai' : 'Menunggu Penilaian Guru' }}
-                        </span>
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <span style="font-size: 12px; font-weight: 700; color: #065F46; background: #D1FAE5; padding: 6px 14px; border-radius: 10px; border: 1px solid #A7F3D0;">
+                                {{ $submission && $submission->status === \App\Models\Submission::STATUS_GRADED ? 'Sudah Dinilai' : 'Menunggu Penilaian Guru' }}
+                            </span>
+                        </div>
                     </div>
+
+                    @if($assessment->lesson && $assessment->lesson->siswa_url)
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding-top: 4px;">
+                            <a href="{{ $assessment->lesson->siswa_url }}" wire:navigate style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 12px; background: #2347C4; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 12px rgba(35, 71, 196, 0.25); transition: background 0.2s;" onmouseover="this.style.background='#1A3596'" onmouseout="this.style.background='#2347C4'">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                                <span>Kembali ke Materi: {{ $assessment->lesson->title }}</span>
+                            </a>
+                        </div>
+                    @endif
                 </div>
             @endif
         </form>
     </div>
+    @endif
 </div>

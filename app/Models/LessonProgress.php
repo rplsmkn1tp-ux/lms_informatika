@@ -9,14 +9,32 @@ class LessonProgress extends Model
 {
     protected $table = 'lesson_progress';
 
-    protected $fillable = ['student_id', 'lesson_id', 'completed_at', 'completed_items'];
+    protected $fillable = [
+        'student_id',
+        'lesson_id',
+        'completed_at',
+        'completed_items',
+        'checkpoint_score',
+        'checkpoint_passed_at',
+        'checkpoint_answers',
+        'is_unlocked',
+    ];
 
     protected function casts(): array
     {
         return [
             'completed_at' => 'datetime',
             'completed_items' => 'array',
+            'checkpoint_score' => 'integer',
+            'checkpoint_passed_at' => 'datetime',
+            'checkpoint_answers' => 'array',
+            'is_unlocked' => 'boolean',
         ];
+    }
+
+    public function hasPassedCheckpoint(): bool
+    {
+        return $this->checkpoint_passed_at !== null;
     }
 
     public function student(): BelongsTo

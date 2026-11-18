@@ -22,19 +22,23 @@ class AcademicYear extends Model
 
     public static function getActive()
     {
-        return \Illuminate\Support\Facades\Cache::rememberForever('active_academic_year', function () {
-            return self::where('is_active', true)->first();
+        $id = \Illuminate\Support\Facades\Cache::rememberForever('active_academic_year_id', function () {
+            return self::where('is_active', true)->value('id');
         });
+
+        return $id ? self::find($id) : self::where('is_active', true)->first();
     }
 
     protected static function booted()
     {
         static::saved(function ($academicYear) {
             \Illuminate\Support\Facades\Cache::forget('active_academic_year');
+            \Illuminate\Support\Facades\Cache::forget('active_academic_year_id');
         });
         
         static::deleted(function ($academicYear) {
             \Illuminate\Support\Facades\Cache::forget('active_academic_year');
+            \Illuminate\Support\Facades\Cache::forget('active_academic_year_id');
         });
     }
 }

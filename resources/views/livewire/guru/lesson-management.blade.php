@@ -515,30 +515,151 @@
                             <div>
                                 <h2 class="text-base font-bold text-[#15191F] flex items-center gap-2">
                                     <span class="w-6 h-6 rounded-full bg-[#2347C4] text-white text-xs flex items-center justify-center font-bold">5</span>
-                                    <span>Tugas & Penugasan Siswa</span>
+                                    <span>Asesmen Terhubung (Tugas Praktik Siswa)</span>
                                 </h2>
                                 <p class="text-xs text-[#4A515C] mt-0.5">Hubungkan tugas untuk materi ini (siswa mengumpulkan file PDF, Word, PPT, link, dsb). Nilai tugas otomatis masuk ke Buku Nilai.</p>
                             </div>
                             
-                            @if($lessonId)
-                                <a href="{{ route('guru.tugas.create', ['lesson_id' => $lessonId]) }}" target="_blank" class="px-4 py-2 bg-[#2347C4] text-white rounded-xl font-bold text-xs hover:bg-[#1A3596] shadow-sm transition-colors flex items-center gap-1.5 shrink-0">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                    <span>+ Buat Tugas Baru</span>
-                                </a>
-                            @endif
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button type="button" wire:click="toggleCreatingNewTask" class="px-4 py-2 {{ $isCreatingNewTask ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-[#2347C4] text-white hover:bg-[#1A3596]' }} rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-1.5">
+                                    @if($isCreatingNewTask)
+                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        <span>Tutup Form Tugas Baru</span>
+                                    @else
+                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                        <span>+ Buat Tugas Asesmen Langsung di Sini</span>
+                                    @endif
+                                </button>
+                            </div>
                         </div>
 
+                        <!-- Form Pembuatan Tugas Asesmen Baru Langsung di Modul Ajar (All-in-One) -->
+                        @if($isCreatingNewTask)
+                            <div class="bg-white p-5 rounded-2xl border-2 border-[#2347C4] shadow-sm flex flex-col gap-4">
+                                <div class="flex items-center justify-between pb-3 border-b border-[#EDEEEA]">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg bg-[#EEF2FF] text-[#2347C4] flex items-center justify-center font-bold text-xs">
+                                            ✨
+                                        </div>
+                                        <div>
+                                            <h3 class="text-sm font-bold text-[#15191F]">Formulir Tugas Praktik Baru (Terpadu)</h3>
+                                            <p class="text-[11px] text-[#4A515C]">Tugas ini akan otomatis dibuat, terhubung ke modul ini, dan masuk ke Buku Nilai saat materi disimpan.</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold rounded-lg flex items-center gap-1">
+                                        ✓ Mode Buat Terpadu Aktif
+                                    </span>
+                                </div>
+
+                                <!-- Judul Tugas -->
+                                <div>
+                                    <label class="block text-xs font-bold text-[#15191F] mb-1">
+                                        Judul Tugas Praktik / Asesmen <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" wire:model="newTaskTitle" placeholder="Contoh: Tugas Praktik: Format Surat Dinas (.docx)" class="w-full text-xs rounded-xl border-[#E2E4DF] bg-[#F8F9FA] text-[#15191F] focus:border-[#2347C4] focus:ring-[#2347C4] px-3.5 py-2.5">
+                                    @error('newTaskTitle') <span class="text-xs text-red-600 font-medium mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                <!-- Petunjuk Pengerjaan -->
+                                <div>
+                                    <label class="block text-xs font-bold text-[#15191F] mb-1">
+                                        Petunjuk Pengerjaan untuk Siswa
+                                    </label>
+                                    <textarea wire:model="newTaskInstructions" rows="3" placeholder="Contoh: Unduh berkas template surat dinas di bawah ini, sesuaikan formatnya, lalu unggah kembali hasil pengerjaan Anda." class="w-full text-xs rounded-xl border-[#E2E4DF] bg-[#F8F9FA] text-[#15191F] focus:border-[#2347C4] focus:ring-[#2347C4] px-3.5 py-2.5"></textarea>
+                                    @error('newTaskInstructions') <span class="text-xs text-red-600 font-medium mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                <!-- Berkas Template LKPD Praktik Guru (Word, Excel, PPTX, PDF) -->
+                                <div class="p-4 bg-[#F8F9FA] rounded-xl border border-[#E2E4DF] flex flex-col gap-2">
+                                    <label class="block text-xs font-bold text-[#15191F]">
+                                        Berkas Lembar Kerja / Template Praktik (LKPD Guru)
+                                    </label>
+                                    <p class="text-[11px] text-[#4A515C] leading-relaxed">
+                                        Unggah file template mentahan yang akan diunduh dan dikerjakan oleh siswa di komputer masing-masing (contoh berkas: <strong>.docx</strong>, <strong>.xlsx</strong>, <strong>.pptx</strong>, atau <strong>.pdf</strong>). Siswa akan melihat tombol unduh template ini di halaman tugas mereka.
+                                    </p>
+                                    <div class="flex items-center gap-3 mt-1">
+                                        <input type="file" wire:model="newTaskTemplateFile" accept=".docx,.doc,.xlsx,.xls,.pptx,.ppt,.pdf,.zip" class="block w-full text-xs text-[#4A515C] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#2347C4] file:text-white hover:file:bg-[#1A3596] cursor-pointer">
+                                    </div>
+                                    <div wire:loading wire:target="newTaskTemplateFile" class="text-xs text-[#2347C4] font-semibold flex items-center gap-1.5 mt-1">
+                                        <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        <span>Sedang mengunggah berkas template LKPD...</span>
+                                    </div>
+                                    @if($newTaskTemplateFile)
+                                        <div class="mt-1 flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+                                            <span>✓ Template terpilih: {{ $newTaskTemplateFile->getClientOriginalName() }}</span>
+                                        </div>
+                                    @endif
+                                    @error('newTaskTemplateFile') <span class="text-xs text-red-600 font-medium mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                <!-- Tipe Pengumpulan Jawaban -->
+                                <div>
+                                    <label class="block text-xs font-bold text-[#15191F] mb-1.5">
+                                        Tipe Pengumpulan Jawaban yang Diizinkan <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="flex flex-wrap gap-4">
+                                        <label class="flex items-center gap-2 text-xs font-semibold text-[#15191F] cursor-pointer">
+                                            <input type="checkbox" wire:model="newTaskSubmissionTypes" value="file" class="w-4 h-4 text-[#2347C4] rounded border-[#E2E4DF] focus:ring-[#2347C4]">
+                                            <span>Unggah File (Dokumen / Gambar / ZIP)</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 text-xs font-semibold text-[#15191F] cursor-pointer">
+                                            <input type="checkbox" wire:model="newTaskSubmissionTypes" value="text" class="w-4 h-4 text-[#2347C4] rounded border-[#E2E4DF] focus:ring-[#2347C4]">
+                                            <span>Teks Jawaban Langsung</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 text-xs font-semibold text-[#15191F] cursor-pointer">
+                                            <input type="checkbox" wire:model="newTaskSubmissionTypes" value="link" class="w-4 h-4 text-[#2347C4] rounded border-[#E2E4DF] focus:ring-[#2347C4]">
+                                            <span>Tautan / URL (Google Drive / GitHub)</span>
+                                        </label>
+                                    </div>
+                                    @error('newTaskSubmissionTypes') <span class="text-xs text-red-600 font-medium mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                <!-- Grid: Tenggat Waktu & Nilai Maksimal -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-[#15191F] mb-1">
+                                            Tenggat Waktu Pengerjaan (Opsional)
+                                        </label>
+                                        <input type="datetime-local" wire:model="newTaskDueAt" class="w-full text-xs rounded-xl border-[#E2E4DF] bg-[#F8F9FA] text-[#15191F] focus:border-[#2347C4] focus:ring-[#2347C4] px-3.5 py-2.5">
+                                        @error('newTaskDueAt') <span class="text-xs text-red-600 font-medium mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-[#15191F] mb-1">
+                                            Nilai Maksimal / Bobot <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="number" wire:model="newTaskMaxScore" min="1" max="1000" class="w-full text-xs rounded-xl border-[#E2E4DF] bg-[#F8F9FA] text-[#15191F] focus:border-[#2347C4] focus:ring-[#2347C4] px-3.5 py-2.5">
+                                        @error('newTaskMaxScore') <span class="text-xs text-red-600 font-medium mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
+
+                                <!-- Kriteria Ketercapaian TP (KKTP / Rubrik Penilaian) -->
+                                <div>
+                                    <label class="block text-xs font-bold text-[#15191F] mb-1 flex items-center justify-between">
+                                        <span>Kriteria Ketercapaian TP (KKTP / Rubrik Penilaian)</span>
+                                        <span class="text-[11px] font-normal text-[#4A515C]">Ditampilkan transparan kepada siswa</span>
+                                    </label>
+                                    <textarea wire:model="newTaskKktp" rows="3" placeholder="Tuliskan indikator atau kriteria penilaian, contoh:&#10;1. Kerapian Margin & Format Dokumen (30 Poin)&#10;2. Ketepatan Struktur Kop Surat (35 Poin)&#10;3. Kelengkapan Isi & Tabel Lampiran (35 Poin)" class="w-full text-xs rounded-xl border-[#E2E4DF] bg-[#F8F9FA] text-[#15191F] focus:border-[#2347C4] focus:ring-[#2347C4] px-3.5 py-2.5"></textarea>
+                                    <p class="text-[11px] text-[#4A515C] mt-1">
+                                        💡 Kriteria ini akan ditampilkan di kartu tugas siswa agar siswa mengetahui standar kualitas yang harus mereka penuhi untuk mencapai ketuntasan (KKTP).
+                                    </p>
+                                    @error('newTaskKktp') <span class="text-xs text-red-600 font-medium mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        @endif
+
                         <!-- Pilih dari Tugas yang Sudah Ada -->
-                        <div>
-                            <label class="block text-xs font-bold text-[#4A515C] uppercase tracking-wider mb-2">
-                                Hubungkan Tugas yang Sudah Dibuat
+                        <div class="flex flex-col gap-2 {{ $isCreatingNewTask ? 'pt-3 border-t border-[#E2E4DF]' : '' }}">
+                            <label class="block text-xs font-bold text-[#4A515C] uppercase tracking-wider">
+                                {{ $isCreatingNewTask ? 'Atau Hubungkan Tugas Tambahan yang Sudah Ada' : 'Hubungkan Tugas yang Sudah Dibuat Sebelumnya' }}
                             </label>
                             @if($availableTasksForModal->isEmpty())
                                 <div class="text-center py-6 bg-white rounded-xl border border-dashed border-[#E2E4DF]">
-                                    <p class="text-xs text-[#4A515C]">Belum ada data tugas pada sistem.</p>
-                                    <a href="{{ route('guru.tugas.create', $lessonId ? ['lesson_id' => $lessonId] : []) }}" target="_blank" class="inline-block mt-2 text-xs font-bold text-[#2347C4] hover:underline">
-                                        + Buat Tugas di Menu Tugas
-                                    </a>
+                                    <p class="text-xs text-[#4A515C]">Belum ada data tugas sebelumnya pada sistem.</p>
+                                    @if(!$isCreatingNewTask)
+                                        <button type="button" wire:click="toggleCreatingNewTask" class="inline-block mt-2 text-xs font-bold text-[#2347C4] hover:underline">
+                                            + Buat Tugas Asesmen Langsung di Sini
+                                        </button>
+                                    @endif
                                 </div>
                             @else
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-56 overflow-y-auto p-1">
@@ -559,6 +680,202 @@
                                 </div>
                             @endif
                         </div>
+                    </div>
+
+                    <!-- 6. ALUR BELAJAR BERJENJANG & KUIS PEMANTIK LITERASI (GATED PROGRESSION) -->
+                    <div class="bg-[#F8F9FA] p-6 rounded-2xl border border-[#E2E4DF] flex flex-col gap-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[#E2E4DF] pb-3">
+                            <div>
+                                <h2 class="text-base font-bold text-[#15191F] flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-[#2347C4] text-white text-xs flex items-center justify-center font-bold">6</span>
+                                    <span>Alur Belajar Berjenjang & Kuis Pemantik Literasi</span>
+                                </h2>
+                                <p class="text-xs text-[#4A515C] mt-0.5">
+                                    Kontrol apakah materi berikutnya otomatis terkunci sampai siswa tuntas membaca materi ini (lewat Kuis Pemantik) atau menyelesaikan tugas praktik Ms. Office.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Toggle Penguncian (is_gated) -->
+                        <div class="bg-white p-4 rounded-xl border {{ $is_gated ? 'border-[#2347C4] ring-1 ring-[#2347C4]/20' : 'border-[#E2E4DF]' }} transition-all">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" wire:model.live="is_gated" class="w-5 h-5 text-[#2347C4] rounded border-[#E2E4DF] focus:ring-[#2347C4] mt-0.5">
+                                <div class="flex-1">
+                                    <span class="text-sm font-bold text-[#15191F] flex items-center gap-2">
+                                        <span>Aktifkan Penguncian Alur Belajar (Gated Progression)</span>
+                                        @if($is_gated)
+                                            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-300">
+                                                🔒 Terkunci Bersyarat
+                                            </span>
+                                        @endif
+                                    </span>
+                                    <p class="text-xs text-[#4A515C] mt-1 leading-relaxed">
+                                        Jika diaktifkan, siswa tidak dapat membuka materi selanjutnya dalam TP ini sebelum materi ini selesai sesuai aturan kelulusan di bawah.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+
+                        @if($is_gated)
+                            <div class="flex flex-col gap-5 pt-2">
+                                <!-- Pilihan Aturan Kelulusan Materi -->
+                                <div>
+                                    <label class="block text-xs font-bold text-[#4A515C] uppercase tracking-wider mb-2">
+                                        Aturan Kelulusan Materi (Syarat Membuka Materi Berikutnya) <span class="text-[#DC2626]">*</span>
+                                    </label>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <!-- Option 1: checkpoint_only -->
+                                        <label class="p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 {{ $completion_rule === 'checkpoint_only' ? 'border-[#2347C4] bg-[#EEF2FF] shadow-xs' : 'border-[#E2E4DF] bg-white hover:bg-[#F8F9FA]' }}">
+                                            <input type="radio" wire:model.live="completion_rule" value="checkpoint_only" class="w-4 h-4 text-[#2347C4] border-[#E2E4DF] focus:ring-[#2347C4] mt-1">
+                                            <div class="flex-1">
+                                                <span class="text-xs font-bold text-[#15191F] block">Teori / Literasi Membaca Saja</span>
+                                                <span class="text-[11px] text-[#4A515C] block mt-0.5">Siswa membaca materi PDF & wajib lulus Kuis Pemantik Literasi (100% benar) untuk lanjut.</span>
+                                            </div>
+                                        </label>
+
+                                        <!-- Option 2: checkpoint_and_task -->
+                                        <label class="p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 {{ $completion_rule === 'checkpoint_and_task' ? 'border-[#2347C4] bg-[#EEF2FF] shadow-xs' : 'border-[#E2E4DF] bg-white hover:bg-[#F8F9FA]' }}">
+                                            <input type="radio" wire:model.live="completion_rule" value="checkpoint_and_task" class="w-4 h-4 text-[#2347C4] border-[#E2E4DF] focus:ring-[#2347C4] mt-1">
+                                            <div class="flex-1">
+                                                <span class="text-xs font-bold text-[#15191F] block">Praktik Ms. Office / Hibrida (Kuis + Tugas)</span>
+                                                <span class="text-[11px] text-[#4A515C] block mt-0.5">Siswa wajib lulus Kuis Pemantik DAN mengunggah file tugas (Word/Excel/PPT) untuk lanjut.</span>
+                                            </div>
+                                        </label>
+
+                                        <!-- Option 3: task_only -->
+                                        <label class="p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 {{ $completion_rule === 'task_only' ? 'border-[#2347C4] bg-[#EEF2FF] shadow-xs' : 'border-[#E2E4DF] bg-white hover:bg-[#F8F9FA]' }}">
+                                            <input type="radio" wire:model.live="completion_rule" value="task_only" class="w-4 h-4 text-[#2347C4] border-[#E2E4DF] focus:ring-[#2347C4] mt-1">
+                                            <div class="flex-1">
+                                                <span class="text-xs font-bold text-[#15191F] block">Asesmen / Pengumpulan Tugas Saja</span>
+                                                <span class="text-[11px] text-[#4A515C] block mt-0.5">Siswa cukup mengumpulkan berkas tugas/asesmen tertaut untuk membuka materi berikutnya.</span>
+                                            </div>
+                                        </label>
+
+                                        <!-- Option 4: standard -->
+                                        <label class="p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 {{ $completion_rule === 'standard' ? 'border-[#2347C4] bg-[#EEF2FF] shadow-xs' : 'border-[#E2E4DF] bg-white hover:bg-[#F8F9FA]' }}">
+                                            <input type="radio" wire:model.live="completion_rule" value="standard" class="w-4 h-4 text-[#2347C4] border-[#E2E4DF] focus:ring-[#2347C4] mt-1">
+                                            <div class="flex-1">
+                                                <span class="text-xs font-bold text-[#15191F] block">Standar (Centang Selesai Manual)</span>
+                                                <span class="text-[11px] text-[#4A515C] block mt-0.5">Siswa cukup menekan tombol "Tandai Selesai" setelah membaca materi.</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    @error('completion_rule') <span class="text-xs text-[#DC2626] font-medium mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                <!-- Materi Prasyarat Sebelumnya (Opsional / Override) -->
+                                <div class="bg-white p-4 rounded-xl border border-[#E2E4DF]">
+                                    <label class="block text-xs font-bold text-[#4A515C] mb-1.5">
+                                        Materi Prasyarat yang Harus Diselesaikan Sebelum Materi Ini Terbuka:
+                                    </label>
+                                    <select wire:model="prerequisite_lesson_id" class="w-full text-xs rounded-xl border-[#E2E4DF] bg-white text-[#15191F] focus:border-[#2347C4] focus:ring-[#2347C4] px-3.5 py-2">
+                                        <option value="">Otomatis: Materi sebelumnya dalam Tujuan Pembelajaran (ATP) ini</option>
+                                        @foreach($availablePrerequisitesForModal as $prereq)
+                                            <option value="{{ $prereq->id }}">
+                                                {{ $prereq->code }} - {{ $prereq->title }} (Urutan ke-{{ $prereq->sort_order }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-[11px] text-[#6B7280] mt-1.5">
+                                        Pilih "Otomatis" agar sistem mengunci materi ini jika materi urutan sebelumnya belum diselesaikan siswa.
+                                    </p>
+                                    @error('prerequisite_lesson_id') <span class="text-xs text-[#DC2626] font-medium mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                <!-- Dynamic Checkpoint Builder (Jika rule checkpoint_only atau checkpoint_and_task) -->
+                                @if(in_array($completion_rule, ['checkpoint_only', 'checkpoint_and_task']))
+                                    <div class="bg-white p-5 rounded-xl border border-[#E2E4DF] flex flex-col gap-4">
+                                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#E2E4DF] pb-3">
+                                            <div>
+                                                <h3 class="text-sm font-bold text-[#15191F] flex items-center gap-2">
+                                                    <svg class="w-4 h-4 text-[#2347C4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                                                    <span>Soal Kuis Pemantik Literasi (Verifikasi Membaca)</span>
+                                                </h3>
+                                                <p class="text-xs text-[#4A515C] mt-0.5">
+                                                    Pertanyaan ringkas pilihan ganda dari modul bacaan. Siswa harus menjawab benar untuk membuktikan mereka telah membaca.
+                                                </p>
+                                            </div>
+                                            <button type="button" wire:click="addCheckpoint" class="px-3 py-1.5 bg-[#2347C4] text-white rounded-lg font-bold text-xs hover:bg-[#1A3596] transition-colors flex items-center gap-1 shrink-0">
+                                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                                <span>+ Tambah Soal</span>
+                                            </button>
+                                        </div>
+
+                                        @error('checkpoints')
+                                            <div class="p-3 bg-red-50 text-red-700 text-xs rounded-lg border border-red-200 font-semibold">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+
+                                        @if(empty($checkpoints))
+                                            <div class="text-center py-6 bg-[#F8F9FA] rounded-xl border border-dashed border-[#E2E4DF]">
+                                                <svg class="w-8 h-8 text-gray-300 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                                <p class="text-xs font-bold text-[#15191F]">Belum ada soal kuis pemantik.</p>
+                                                <p class="text-xs text-[#4A515C] mt-0.5">Klik tombol "+ Tambah Soal" di atas untuk menambahkan pertanyaan pemantik literasi.</p>
+                                            </div>
+                                        @else
+                                            <div class="flex flex-col gap-4">
+                                                @foreach($checkpoints as $cIndex => $cp)
+                                                    <div class="p-4 rounded-xl border border-[#E2E4DF] bg-[#F8F9FA] flex flex-col gap-3 relative">
+                                                        <div class="flex items-center justify-between">
+                                                            <span class="text-xs font-bold text-[#2347C4] bg-[#EEF2FF] px-2.5 py-1 rounded-md">
+                                                                Soal #{{ $cIndex + 1 }}
+                                                            </span>
+                                                            <button type="button" wire:click="removeCheckpoint({{ $cIndex }})" class="text-xs font-bold text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 flex items-center gap-1 transition-colors">
+                                                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                                <span>Hapus</span>
+                                                            </button>
+                                                        </div>
+
+                                                        <!-- Pertanyaan -->
+                                                        <div>
+                                                            <label class="block text-xs font-bold text-[#4A515C] mb-1">
+                                                                Pertanyaan <span class="text-[#DC2626]">*</span>
+                                                            </label>
+                                                            <textarea wire:model="checkpoints.{{ $cIndex }}.question" rows="2" placeholder="Contoh: Berdasarkan bacaan di atas, apa fungsi utama dari menu Mailings pada Microsoft Word?" class="w-full text-xs rounded-xl border-[#E2E4DF] bg-white text-[#15191F] focus:border-[#2347C4] focus:ring-[#2347C4] px-3 py-2"></textarea>
+                                                            @error("checkpoints.{$cIndex}.question") <span class="text-xs text-[#DC2626] font-medium mt-1 block">{{ $message }}</span> @enderror
+                                                        </div>
+
+                                                        <!-- Pilihan Jawaban (A, B, C, D) & Radio Kunci -->
+                                                        <div>
+                                                            <label class="block text-xs font-bold text-[#4A515C] mb-1.5">
+                                                                Pilihan Jawaban (Pilih radio untuk menandai Kunci Jawaban yang Benar): <span class="text-[#DC2626]">*</span>
+                                                            </label>
+                                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                                                                @foreach(['A', 'B', 'C', 'D'] as $optKey)
+                                                                    <div class="flex items-center gap-2 p-2 bg-white rounded-xl border {{ ($cp['correct_answer'] ?? 'A') === $optKey ? 'border-[#2347C4] ring-1 ring-[#2347C4]/20' : 'border-[#E2E4DF]' }}">
+                                                                        <label class="flex items-center gap-1.5 cursor-pointer shrink-0">
+                                                                            <input type="radio" wire:model="checkpoints.{{ $cIndex }}.correct_answer" value="{{ $optKey }}" class="w-4 h-4 text-[#2347C4] border-[#E2E4DF] focus:ring-[#2347C4]">
+                                                                            <span class="text-xs font-bold {{ ($cp['correct_answer'] ?? 'A') === $optKey ? 'text-[#2347C4]' : 'text-[#4A515C]' }}">
+                                                                                {{ $optKey }}.
+                                                                            </span>
+                                                                        </label>
+                                                                        <input type="text" wire:model="checkpoints.{{ $cIndex }}.options.{{ $optKey }}" placeholder="Jawaban opsi {{ $optKey }}" class="w-full text-xs border-0 focus:ring-0 p-1 text-[#15191F]">
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                            @error("checkpoints.{$cIndex}.options.A") <span class="text-xs text-[#DC2626] font-medium mt-1 block">{{ $message }}</span> @enderror
+                                                            @error("checkpoints.{$cIndex}.options.B") <span class="text-xs text-[#DC2626] font-medium mt-1 block">{{ $message }}</span> @enderror
+                                                            @error("checkpoints.{$cIndex}.options.C") <span class="text-xs text-[#DC2626] font-medium mt-1 block">{{ $message }}</span> @enderror
+                                                            @error("checkpoints.{$cIndex}.options.D") <span class="text-xs text-[#DC2626] font-medium mt-1 block">{{ $message }}</span> @enderror
+                                                            @error("checkpoints.{$cIndex}.correct_answer") <span class="text-xs text-[#DC2626] font-medium mt-1 block">{{ $message }}</span> @enderror
+                                                        </div>
+
+                                                        <!-- Penjelasan / Umpan Balik -->
+                                                        <div>
+                                                            <label class="block text-xs font-bold text-[#4A515C] mb-1">
+                                                                Penjelasan / Catatan Pembahasan (Opsional):
+                                                            </label>
+                                                            <input type="text" wire:model="checkpoints.{{ $cIndex }}.explanation" placeholder="Muncul setelah siswa menjawab (misal: Mailings digunakan untuk membuat surat massal)." class="w-full text-xs rounded-xl border-[#E2E4DF] bg-white text-[#15191F] focus:border-[#2347C4] focus:ring-[#2347C4] px-3 py-1.5">
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Tombol Aksi Bawah -->
@@ -998,6 +1315,14 @@
                                                 @if($lesson->estimated_minutes)
                                                     <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-zinc-100 text-zinc-700 rounded text-[11px] font-medium whitespace-nowrap shrink-0">
                                                         <span>{{ $lesson->estimated_minutes }} mnt</span>
+                                                    </span>
+                                                @endif
+
+                                                <!-- Gated Progression -->
+                                                @if($lesson->is_gated)
+                                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-300 rounded text-[11px] font-bold whitespace-nowrap shrink-0" title="Materi Prasyarat Berjenjang (Gated Learning)">
+                                                        <svg class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                        <span>Gated: {{ $lesson->completion_rule === 'checkpoint_and_task' ? 'Kuis + Praktik' : ($lesson->completion_rule === 'checkpoint_only' ? 'Kuis Literasi' : ($lesson->completion_rule === 'task_only' ? 'Tugas' : 'Standar')) }}</span>
                                                     </span>
                                                 @endif
                                             </div>

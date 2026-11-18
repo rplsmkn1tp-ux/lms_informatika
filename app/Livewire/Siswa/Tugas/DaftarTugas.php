@@ -39,7 +39,7 @@ class DaftarTugas extends Component
                     $sq->where('student_id', $user->id);
                 });
             })
-            ->with(['element', 'learningObjective', 'classrooms'])
+            ->with(['element', 'learningObjective', 'classrooms', 'lesson.checkpoints', 'lesson.progress'])
             ->latest('id');
 
         if ($this->search) {
@@ -55,7 +55,7 @@ class DaftarTugas extends Component
             ->map(fn($group) => $group->sortByDesc('attempt')->first());
 
         // Process status & deadlines for each assessment
-        $filteredAssessments = $allAssessments->map(function ($assessment) use ($submissions, $classroomId, $now) {
+        $filteredAssessments = $allAssessments->map(function ($assessment) use ($submissions, $classroomId, $now, $user) {
             $pivot = $assessment->classrooms->firstWhere('id', $classroomId)?->pivot;
             $dueAt = $pivot?->due_at ?? $assessment->due_at;
             $dueAtCarbon = $dueAt ? Carbon::parse($dueAt)->setTimezone('Asia/Jakarta') : null;
@@ -65,6 +65,11 @@ class DaftarTugas extends Component
             $isGraded = $submission && $submission->status === Submission::STATUS_GRADED;
             $isRevision = $submission && $submission->status === Submission::STATUS_REVISION;
             $isPastDue = $dueAtCarbon && $now->gt($dueAtCarbon);
+            
+            $isLessonLocked = false;
+            if (!$isSubmitted && $assessment->lesson_id && $assessment->lesson) {
+                $isLessonLocked = !$assessment->lesson->isReadingCompletedBy($user);
+            }
 
             // Compute user-friendly status badge and remaining time
             if ($isGraded) {
@@ -79,6 +84,10 @@ class DaftarTugas extends Component
                 $statusType = 'selesai';
                 $statusLabel = 'Menunggu Penilaian';
                 $statusBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+            } elseif ($isLessonLocked) {
+                $statusType = 'perlu_dikerjakan';
+                $statusLabel = 'Terkunci (Belum Tuntas Materi)';
+                $statusBadgeClass = 'bg-amber-50 text-amber-800 border-amber-300';
             } elseif ($isPastDue) {
                 $statusType = 'terlewat';
                 $statusLabel = $assessment->allow_late ? 'Terlambat (Bisa Dikirim)' : 'Tenggat Berakhir';
@@ -113,6 +122,8 @@ class DaftarTugas extends Component
             $assessment->userTimeText = $timeText;
             $assessment->userSubmission = $submission;
             $assessment->dueAtCarbon = $dueAtCarbon;
+            $assessment->isLessonLocked = $isLessonLocked;
+            $assessment->lessonUrl = $assessment->lesson?->siswa_url;
 
             return $assessment;
         })->filter(function ($assessment) {

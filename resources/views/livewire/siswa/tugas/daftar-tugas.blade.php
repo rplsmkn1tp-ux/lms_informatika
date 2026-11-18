@@ -97,6 +97,11 @@
                             @endif
                         </div>
                     @endif
+                    @if($assessment->isLessonLocked)
+                        <div style="padding: 6px 10px; border-radius: 8px; background: #FEF3C7; color: #92400E; font-size: 11.5px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                            <span>🔒 Terkunci: Wajib menuntaskan materi sebelum membuka tugas ini.</span>
+                        </div>
+                    @endif
                     @if($assessment->instructions)
                         <p style="margin: 0; font-size: 13px; color: #4A515C; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45;">
                             {{ $assessment->instructions }}

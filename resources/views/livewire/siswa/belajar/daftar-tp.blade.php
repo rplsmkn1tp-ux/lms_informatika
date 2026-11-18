@@ -26,29 +26,41 @@
                 <div style="display: flex; flex-direction: column; gap: 12px">
                     @forelse($tp->lessons as $lesson)
                         @php
-                            $isDone = \App\Models\LessonProgress::where('student_id', auth()->id())
-                                ->where('lesson_id', $lesson->id)->exists();
-                            
+                            $isDone = $lesson->isCompletedBy(auth()->user());
                             $classroomPivot = $lesson->classrooms->first();
-                            $isLocked = $classroomPivot && $classroomPivot->pivot->available_from && \Illuminate\Support\Carbon::parse($classroomPivot->pivot->available_from)->isFuture();
+                            $isScheduledLocked = $classroomPivot && $classroomPivot->pivot->available_from && \Illuminate\Support\Carbon::parse($classroomPivot->pivot->available_from)->isFuture();
+                            $isPrereqLocked = !$lesson->isUnlockedFor(auth()->user());
+                            $isLocked = $isScheduledLocked || $isPrereqLocked;
+                            $effectivePrereq = $isPrereqLocked ? $lesson->getEffectivePrerequisite() : null;
                         @endphp
                         
                         @if($isLocked)
-                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 12px; background: #F4F5F2; color: #8F95A0; border: 1px solid transparent; cursor: not-allowed;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 12px; background: #F8FAFC; color: #64748B; border: 1px dashed #CBD5E1; cursor: not-allowed;">
                                 <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                                    <span style="width: 36px; height: 36px; flex: none; border-radius: 99px; background: #E2E4DF; color: #8F95A0; display: flex; align-items: center; justify-content: center">
+                                    <span style="width: 36px; height: 36px; flex: none; border-radius: 99px; background: #E2E8F0; color: #64748B; display: flex; align-items: center; justify-content: center">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
                                     </span>
-                                    <span style="font-size: 15px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                                        {{ $lesson->code }} {{ $lesson->title }}
-                                    </span>
+                                    <div style="display: flex; flex-direction: column; min-width: 0;">
+                                        <span style="font-size: 15px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: #475569;">
+                                            {{ $lesson->code }} {{ $lesson->title }}
+                                        </span>
+                                        @if($effectivePrereq)
+                                            <span style="font-size: 11px; color: #B91C1C; font-weight: 500;">
+                                                🔒 Selesaikan prasyarat: "{{ $effectivePrereq->title }}" terlebih dahulu
+                                            </span>
+                                        @elseif($isScheduledLocked)
+                                            <span style="font-size: 11px; color: #B45309; font-weight: 500;">
+                                                Terjadwal tayang: {{ \Carbon\Carbon::parse($classroomPivot->pivot->available_from)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') }} WIB
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
-                                <span style="font-size: 13px; color: #8F95A0; flex: none;">
-                                    Terkunci
+                                <span style="font-size: 11px; font-weight: 700; color: #64748B; flex: none; background: #E2E8F0; padding: 4px 10px; border-radius: 8px;">
+                                    Terkunci 🔒
                                 </span>
                             </div>
                         @else
-                            <a href="{{ route('siswa.belajar.materi', ['element' => $element->code, 'tp' => $tp->code, 'lesson' => $lesson->code ?: $lesson->id]) }}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 12px; background: {{ $isDone ? '#E8EDFC' : '#F6F7F4' }}; text-decoration: none; color: #15191F; border: 1px solid transparent;">
+                            <a href="{{ route('siswa.belajar.materi', ['element' => $element->code, 'tp' => $tp->code, 'lesson' => $lesson->code ?: $lesson->id]) }}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 12px; background: {{ $isDone ? '#E8EDFC' : '#F6F7F4' }}; text-decoration: none; color: #15191F; border: 1px solid {{ $isDone ? '#C7D7FE' : 'transparent' }}; transition: all 0.2s;">
                                 <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
                                     <span style="width: 36px; height: 36px; flex: none; border-radius: 99px; background: {{ $isDone ? '#2347C4' : '#C9CDC4' }}; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
                                         @if($isDone)
@@ -57,9 +69,16 @@
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
                                         @endif
                                     </span>
-                                    <span style="font-size: 15px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-                                        {{ $lesson->code }} {{ $lesson->title }}
-                                    </span>
+                                    <div style="display: flex; flex-direction: column; min-width: 0;">
+                                        <span style="font-size: 15px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                                            {{ $lesson->code }} {{ $lesson->title }}
+                                        </span>
+                                        @if($lesson->is_gated)
+                                            <span style="font-size: 11px; color: {{ $isDone ? '#15803D' : '#2347C4' }}; font-weight: 600;">
+                                                {{ $isDone ? '✓ Ketuntasan Selesai' : ($lesson->completion_rule === 'checkpoint_and_task' ? 'Syarat: Kuis Pemantik + Unggah Tugas' : ($lesson->completion_rule === 'checkpoint_only' ? 'Syarat: Lulus Kuis Pemantik Literasi' : 'Syarat: Unggah Tugas Praktik')) }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                                 <span style="font-size: 13px; color: #4A515C; flex: none;">
                                     {{ $lesson->estimated_minutes ? '±' . $lesson->estimated_minutes . ' menit' : 'Materi' }}

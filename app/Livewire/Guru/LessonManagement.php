@@ -8,6 +8,7 @@ use App\Models\Element;
 use App\Models\LearningObjective;
 use App\Models\Lesson;
 use App\Models\LessonAttachment;
+use App\Models\LessonCheckpoint;
 use App\Models\LessonProgress;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -70,6 +71,22 @@ class LessonManagement extends Component
     // Linked Tasks
     public array $selectedTaskIds = [];
     public array $linkedAssessments = [];
+
+    // Inline Task / Assessment Creation
+    public bool $isCreatingNewTask = false;
+    public string $newTaskTitle = '';
+    public string $newTaskInstructions = '';
+    public array $newTaskSubmissionTypes = ['file'];
+    public ?string $newTaskDueAt = null;
+    public int $newTaskMaxScore = 100;
+    public string $newTaskKktp = '';
+    public $newTaskTemplateFile = null;
+
+    // Gated Learning & Checkpoints
+    public bool $is_gated = false;
+    public string $completion_rule = 'standard'; // standard, checkpoint_only, task_only, checkpoint_and_task
+    public ?int $prerequisite_lesson_id = null;
+    public array $checkpoints = [];
 
     // Quick ATP Modal
     public bool $isAtpModalOpen = false;
@@ -402,6 +419,15 @@ class LessonManagement extends Component
             ->orderBy('title')
             ->get();
 
+        // Available prerequisite lessons for modal
+        $availablePrerequisitesForModal = collect();
+        if ($this->learning_objective_id) {
+            $availablePrerequisitesForModal = Lesson::where('learning_objective_id', $this->learning_objective_id)
+                ->when($this->lessonId, fn($q) => $q->where('id', '!=', $this->lessonId))
+                ->orderBy('sort_order')
+                ->get();
+        }
+
         return view('livewire.guru.lesson-management', [
             'groupedData' => $groupedData,
             'selectedTp' => $selectedTp,
@@ -410,6 +436,7 @@ class LessonManagement extends Component
             'availableElements' => $availableElements,
             'availableTps' => $availableTps,
             'availableTasksForModal' => $availableTasksForModal,
+            'availablePrerequisitesForModal' => $availablePrerequisitesForModal,
             'statusCounts' => [
                 'semua' => $allLessonsCount,
                 'terbit' => $publishedLessonsCount,
@@ -417,6 +444,32 @@ class LessonManagement extends Component
                 'draf' => $draftLessonsCount,
             ],
         ]);
+    }
+
+    public function addCheckpoint(): void
+    {
+        $this->checkpoints[] = [
+            'id' => null,
+            'question' => '',
+            'options' => [
+                'A' => '',
+                'B' => '',
+                'C' => '',
+                'D' => '',
+            ],
+            'correct_answer' => 'A',
+            'explanation' => '',
+            'sort_order' => count($this->checkpoints) + 1,
+        ];
+    }
+
+    public function removeCheckpoint(int $index): void
+    {
+        unset($this->checkpoints[$index]);
+        $this->checkpoints = array_values($this->checkpoints);
+        foreach ($this->checkpoints as $idx => &$cp) {
+            $cp['sort_order'] = $idx + 1;
+        }
     }
 
     public function create(): void
@@ -432,12 +485,24 @@ class LessonManagement extends Component
             'summary', 'content', 'estimated_minutes', 'sort_order', 'status',
             'selectedClassrooms', 'existingPdfs', 'pendingPdfs', 'existingVideos',
             'pendingVideos', 'selectedTaskIds', 'linkedAssessments', 'newPdfFile',
-            'newPdfLabel', 'newVideoUrl', 'newVideoTitle', 'newVideoPreviewId'
+            'newPdfLabel', 'newVideoUrl', 'newVideoTitle', 'newVideoPreviewId',
+            'is_gated', 'completion_rule', 'prerequisite_lesson_id', 'checkpoints',
+            'isCreatingNewTask', 'newTaskTitle', 'newTaskInstructions', 'newTaskSubmissionTypes',
+            'newTaskDueAt', 'newTaskMaxScore', 'newTaskKktp', 'newTaskTemplateFile'
         ]);
 
         $this->status = 'draft';
         $this->estimated_minutes = 45;
         $this->sort_order = 1;
+        $this->is_gated = false;
+        $this->completion_rule = 'standard';
+        $this->prerequisite_lesson_id = null;
+        $this->checkpoints = [];
+        $this->isCreatingNewTask = false;
+        $this->newTaskSubmissionTypes = ['file'];
+        $this->newTaskMaxScore = 100;
+        $this->newTaskKktp = '';
+        $this->newTaskTemplateFile = null;
 
         $targetTpId = $tpId ?: $this->selectedTpId;
         if ($targetTpId) {
@@ -474,7 +539,7 @@ class LessonManagement extends Component
     {
         $this->resetValidation();
 
-        $lesson = Lesson::with(['attachments', 'classrooms', 'learningObjective.element', 'allAssessments'])->findOrFail($id);
+        $lesson = Lesson::with(['attachments', 'classrooms', 'learningObjective.element', 'allAssessments', 'checkpoints'])->findOrFail($id);
         if ($lesson->created_by !== Auth::id() && $lesson->created_by !== 1 && Auth::user()->role !== 'admin') {
             abort(403);
         }
@@ -492,6 +557,27 @@ class LessonManagement extends Component
         $this->scheduled_at = $lesson->scheduled_at ? Carbon::parse($lesson->scheduled_at)->setTimezone('Asia/Jakarta')->format('Y-m-d\TH:i') : Carbon::now('Asia/Jakarta')->addDays(1)->format('Y-m-d\TH:i');
 
         $this->selectedClassrooms = $lesson->classrooms->pluck('id')->map(fn($cid) => (string) $cid)->toArray();
+
+        // Gated Learning & Checkpoints
+        $this->is_gated = (bool) $lesson->is_gated;
+        $this->completion_rule = $lesson->completion_rule ?? 'standard';
+        $this->prerequisite_lesson_id = $lesson->prerequisite_lesson_id;
+        $this->checkpoints = [];
+        foreach ($lesson->checkpoints()->orderBy('sort_order')->get() as $cp) {
+            $this->checkpoints[] = [
+                'id' => $cp->id,
+                'question' => $cp->question,
+                'options' => is_array($cp->options) ? $cp->options : [
+                    'A' => '',
+                    'B' => '',
+                    'C' => '',
+                    'D' => '',
+                ],
+                'correct_answer' => $cp->correct_answer ?? 'A',
+                'explanation' => $cp->explanation ?? '',
+                'sort_order' => $cp->sort_order,
+            ];
+        }
 
         // Load existing PDFs and Videos
         $this->existingPdfs = $lesson->attachments->where('type', 'pdf')->values()->toArray();
@@ -516,6 +602,15 @@ class LessonManagement extends Component
                 'submission_count' => $ass->submissions()->count(),
             ];
         }
+
+        $this->isCreatingNewTask = false;
+        $this->newTaskTitle = '';
+        $this->newTaskInstructions = '';
+        $this->newTaskSubmissionTypes = ['file'];
+        $this->newTaskDueAt = null;
+        $this->newTaskMaxScore = 100;
+        $this->newTaskKktp = '';
+        $this->newTaskTemplateFile = null;
 
         $this->selectedTpId = $lesson->learning_objective_id;
         $this->isModalOpen = true;
@@ -719,9 +814,25 @@ class LessonManagement extends Component
         }
     }
 
+    public function toggleCreatingNewTask(): void
+    {
+        $this->isCreatingNewTask = !$this->isCreatingNewTask;
+        if ($this->isCreatingNewTask) {
+            if (empty($this->newTaskTitle)) {
+                $this->newTaskTitle = 'Tugas Praktik: ' . ($this->title ?: 'Modul ' . ($this->code ?: 'Baru'));
+            }
+            if (empty($this->newTaskInstructions)) {
+                $this->newTaskInstructions = 'Unduh berkas template lembar kerja di bawah ini, kerjakan sesuai petunjuk modul, lalu unggah kembali hasil pekerjaan Anda.';
+            }
+            if (empty($this->newTaskDueAt)) {
+                $this->newTaskDueAt = Carbon::now('Asia/Jakarta')->addDays(7)->setHour(23)->setMinute(59)->format('Y-m-d\TH:i');
+            }
+        }
+    }
+
     public function save(): void
     {
-        $this->validate([
+        $rules = [
             'title' => 'required|string|max:255',
             'element_id' => 'required|exists:elements,id',
             'learning_objective_id' => 'required|exists:learning_objectives,id',
@@ -733,7 +844,12 @@ class LessonManagement extends Component
             'status' => 'required|in:draft,published,scheduled',
             'scheduled_at' => 'required_if:status,scheduled|nullable|date',
             'selectedClassrooms' => 'required|array|min:1',
-        ], [
+            'is_gated' => 'boolean',
+            'completion_rule' => 'required|in:standard,checkpoint_only,task_only,checkpoint_and_task',
+            'prerequisite_lesson_id' => 'nullable|exists:lessons,id',
+        ];
+
+        $messages = [
             'title.required' => 'Judul materi wajib diisi.',
             'element_id.required' => 'Pilih Elemen Pembelajaran.',
             'learning_objective_id.required' => 'Pilih Tujuan Pembelajaran (ATP).',
@@ -743,7 +859,48 @@ class LessonManagement extends Component
             'scheduled_at.required_if' => 'Tentukan tanggal tayang untuk status Terjadwal.',
             'selectedClassrooms.required' => 'Pilih minimal satu kelas tujuan materi ini.',
             'selectedClassrooms.min' => 'Pilih minimal satu kelas tujuan materi ini.',
-        ]);
+        ];
+
+        if ($this->is_gated && in_array($this->completion_rule, ['checkpoint_only', 'checkpoint_and_task'])) {
+            $rules['checkpoints'] = 'required|array|min:1';
+            $rules['checkpoints.*.question'] = 'required|string';
+            $rules['checkpoints.*.options.A'] = 'required|string';
+            $rules['checkpoints.*.options.B'] = 'required|string';
+            $rules['checkpoints.*.options.C'] = 'required|string';
+            $rules['checkpoints.*.options.D'] = 'required|string';
+            $rules['checkpoints.*.correct_answer'] = 'required|in:A,B,C,D';
+
+            $messages['checkpoints.min'] = 'Tambahkan minimal 1 soal Kuis Pemantik Literasi.';
+            $messages['checkpoints.*.question.required'] = 'Pertanyaan kuis pemantik wajib diisi.';
+            $messages['checkpoints.*.options.A.required'] = 'Pilihan A wajib diisi.';
+            $messages['checkpoints.*.options.B.required'] = 'Pilihan B wajib diisi.';
+            $messages['checkpoints.*.options.C.required'] = 'Pilihan C wajib diisi.';
+            $messages['checkpoints.*.options.D.required'] = 'Pilihan D wajib diisi.';
+            $messages['checkpoints.*.correct_answer.required'] = 'Kunci jawaban kuis pemantik wajib dipilih.';
+        }
+
+        if ($this->isCreatingNewTask) {
+            $rules['newTaskTitle'] = 'required|string|max:255';
+            $rules['newTaskSubmissionTypes'] = 'required|array|min:1';
+            $rules['newTaskMaxScore'] = 'required|integer|min:1|max:1000';
+            $rules['newTaskDueAt'] = 'nullable|date';
+            $rules['newTaskTemplateFile'] = 'nullable|file|max:20480|mimes:docx,doc,xlsx,xls,pptx,ppt,pdf,zip';
+            $rules['newTaskKktp'] = 'nullable|string';
+
+            $messages['newTaskTitle.required'] = 'Judul tugas praktik / asesmen wajib diisi.';
+            $messages['newTaskSubmissionTypes.required'] = 'Pilih minimal satu tipe pengumpulan jawaban tugas.';
+            $messages['newTaskSubmissionTypes.min'] = 'Pilih minimal satu tipe pengumpulan jawaban tugas.';
+            $messages['newTaskTemplateFile.mimes'] = 'Format berkas template LKPD harus berupa Word (.docx/.doc), Excel (.xlsx/.xls), PowerPoint (.pptx/.ppt), PDF, atau ZIP.';
+            $messages['newTaskTemplateFile.max'] = 'Ukuran berkas template LKPD maksimal 20 MB.';
+        }
+
+        if ($this->is_gated && in_array($this->completion_rule, ['task_only', 'checkpoint_and_task']) && !$this->isCreatingNewTask) {
+            $rules['selectedTaskIds'] = 'required|array|min:1';
+            $messages['selectedTaskIds.required'] = 'Pilih minimal 1 tugas/asesmen tertaut atau aktifkan pembuatan tugas baru.';
+            $messages['selectedTaskIds.min'] = 'Pilih minimal 1 tugas/asesmen tertaut atau aktifkan pembuatan tugas baru.';
+        }
+
+        $this->validate($rules, $messages);
 
         $scheduledCarbon = null;
         if ($this->status === 'scheduled' && $this->scheduled_at) {
@@ -761,6 +918,9 @@ class LessonManagement extends Component
                 'sort_order' => $this->sort_order,
                 'status' => $this->status,
                 'scheduled_at' => $scheduledCarbon,
+                'is_gated' => $this->is_gated,
+                'completion_rule' => $this->is_gated ? $this->completion_rule : 'standard',
+                'prerequisite_lesson_id' => $this->is_gated ? $this->prerequisite_lesson_id : null,
             ];
 
             if ($this->lessonId) {
@@ -794,6 +954,80 @@ class LessonManagement extends Component
             }
             $this->pendingVideos = [];
 
+            // Buat Tugas / Asesmen Baru Langsung dari Halaman Modul Ajar (Inline Task Creation)
+            if ($this->isCreatingNewTask) {
+                $teacherAttachments = [];
+                if ($this->newTaskTemplateFile) {
+                    $templatePath = $this->newTaskTemplateFile->store('teacher_attachments', 'local');
+                    $teacherAttachments[] = [
+                        'type' => 'file',
+                        'name' => $this->newTaskTemplateFile->getClientOriginalName(),
+                        'path' => $templatePath,
+                        'size' => $this->newTaskTemplateFile->getSize(),
+                    ];
+                }
+
+                $taskDueAt = $this->newTaskDueAt ? Carbon::parse($this->newTaskDueAt, 'Asia/Jakarta')->setTimezone('UTC') : null;
+                $taskOpensAt = $this->status === 'scheduled' && $this->scheduled_at ? Carbon::parse($this->scheduled_at, 'Asia/Jakarta')->setTimezone('UTC') : now();
+                $highestSeq = Assessment::where('type', 'tugas')->max('grade_seq') ?? 0;
+
+                $taskKktpThreshold = $lesson->learningObjective?->kktp ?? 75;
+
+                $newTask = Assessment::create([
+                    'learning_objective_id' => $lesson->learning_objective_id,
+                    'element_id' => $lesson->learningObjective?->element_id ?: $this->element_id,
+                    'lesson_id' => $lesson->id,
+                    'type' => 'tugas',
+                    'assignment_mode' => 'individual',
+                    'title' => $this->newTaskTitle,
+                    'instructions' => $this->newTaskInstructions,
+                    'teacher_attachments' => $teacherAttachments,
+                    'submission_types' => $this->newTaskSubmissionTypes,
+                    'allow_late' => true,
+                    'allow_resubmit' => true,
+                    'opens_at' => $taskOpensAt,
+                    'due_at' => $taskDueAt,
+                    'kktp' => $taskKktpThreshold,
+                    'rubric' => $this->newTaskKktp,
+                    'max_score' => $this->newTaskMaxScore,
+                    'status' => 'published',
+                    'created_by' => Auth::id(),
+                    'grade_group' => 'tugas',
+                    'grade_seq' => $highestSeq + 1,
+                ]);
+
+                // Sync kelas
+                $syncClassData = [];
+                foreach ($this->selectedClassrooms as $cid) {
+                    $syncClassData[(int)$cid] = [
+                        'opens_at' => $taskOpensAt,
+                        'due_at' => $taskDueAt,
+                    ];
+                }
+                $newTask->classrooms()->sync($syncClassData);
+
+                if (method_exists($newTask, 'syncLearningObjectives')) {
+                    $newTask->syncLearningObjectives([$lesson->learning_objective_id]);
+                }
+
+                // Tambahkan ke daftar tugas terpilih agar tertaut
+                if (!in_array($newTask->id, $this->selectedTaskIds)) {
+                    $this->selectedTaskIds[] = $newTask->id;
+                }
+
+                // Sinkronkan ke Buku Nilai
+                foreach ($newTask->classrooms as $cls) {
+                    try {
+                        app(\App\Services\GradeBookSyncService::class)->syncClassroom($cls);
+                    } catch (\Throwable $e) {
+                    }
+                }
+
+                // Reset state pembuatan tugas baru
+                $this->isCreatingNewTask = false;
+                $this->newTaskTemplateFile = null;
+            }
+
             // Sync connected tasks (Assessments)
             // Unlink previously linked assessments that are no longer selected
             Assessment::where('lesson_id', $lesson->id)
@@ -809,6 +1043,33 @@ class LessonManagement extends Component
                     ]);
             }
 
+            // Sync checkpoints if gated and includes checkpoints, or if checkpoints exist
+            $existingCheckpointIds = $lesson->checkpoints()->pluck('id')->toArray();
+            $keptCheckpointIds = [];
+
+            if ($this->is_gated && in_array($this->completion_rule, ['checkpoint_only', 'checkpoint_and_task'])) {
+                foreach ($this->checkpoints as $idx => $cpData) {
+                    $checkpointRecord = [
+                        'question' => $cpData['question'],
+                        'options' => $cpData['options'],
+                        'correct_answer' => $cpData['correct_answer'] ?? 'A',
+                        'explanation' => !empty($cpData['explanation']) ? $cpData['explanation'] : null,
+                        'sort_order' => $idx + 1,
+                    ];
+
+                    if (!empty($cpData['id']) && in_array($cpData['id'], $existingCheckpointIds)) {
+                        LessonCheckpoint::where('id', $cpData['id'])->update($checkpointRecord);
+                        $keptCheckpointIds[] = $cpData['id'];
+                    } else {
+                        $newCp = $lesson->checkpoints()->create($checkpointRecord);
+                        $keptCheckpointIds[] = $newCp->id;
+                    }
+                }
+            }
+
+            // Remove any checkpoints that were deleted or if no longer checkpoint-based
+            $lesson->checkpoints()->whereNotIn('id', $keptCheckpointIds)->delete();
+
             $this->selectedTpId = $lesson->learning_objective_id;
         });
 
@@ -818,7 +1079,7 @@ class LessonManagement extends Component
 
     public function duplicate(int $id): void
     {
-        $lesson = Lesson::with(['attachments', 'classrooms'])->findOrFail($id);
+        $lesson = Lesson::with(['attachments', 'classrooms', 'checkpoints'])->findOrFail($id);
         if ($lesson->created_by !== Auth::id() && $lesson->created_by !== 1 && Auth::user()->role !== 'admin') abort(403);
 
         DB::transaction(function () use ($lesson) {
@@ -846,6 +1107,17 @@ class LessonManagement extends Component
 
             // Replicate classrooms
             $newLesson->classrooms()->sync($lesson->classrooms->pluck('id')->toArray());
+
+            // Replicate checkpoints
+            foreach ($lesson->checkpoints as $cp) {
+                $newLesson->checkpoints()->create([
+                    'question' => $cp->question,
+                    'options' => $cp->options,
+                    'correct_answer' => $cp->correct_answer,
+                    'explanation' => $cp->explanation,
+                    'sort_order' => $cp->sort_order,
+                ]);
+            }
 
             // Replicate attachments with independent files
             foreach ($lesson->attachments as $att) {

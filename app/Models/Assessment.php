@@ -12,7 +12,7 @@ class Assessment extends Model
     protected $fillable = [
         'learning_objective_id', 'element_id', 'lesson_id', 'attendance_session_id', 'meeting_no', 'type', 'assignment_mode', 'max_group_members', 'title', 'instructions',
         'teacher_attachments', 'submission_types', 'allow_late', 'allow_resubmit', 'opens_at', 'due_at',
-        'kktp', 'max_score', 'max_attempts', 'time_limit_minutes', 'status', 'created_by',
+        'kktp', 'rubric', 'max_score', 'max_attempts', 'time_limit_minutes', 'status', 'created_by',
         'grade_group', 'grade_seq',
     ];
 

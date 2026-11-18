@@ -39,6 +39,7 @@ class KerjakanTugas extends Component
 
     // Status & Policy
     public bool $isLocked = false;
+    public bool $isLessonLocked = false;
     public bool $canResubmit = false;
     public bool $isPastDue = false;
     public string $lockReason = '';
@@ -47,6 +48,7 @@ class KerjakanTugas extends Component
     public function mount(Assessment $assessment)
     {
         $this->assessment = $assessment;
+        $this->assessment->loadMissing(['lesson.learningObjective.element', 'creator']);
 
         $user = auth()->user();
         $classroom = $user->activeClassroom();
@@ -151,6 +153,14 @@ class KerjakanTugas extends Component
             }
         } else {
             // Belum pernah mengumpulkan
+            // 1. Cek apakah tugas terkunci karena materi terkait belum dipelajari
+            if ($this->assessment->lesson_id && $this->assessment->lesson && !$this->assessment->lesson->isReadingCompletedBy($user)) {
+                $this->isLocked = true;
+                $this->isLessonLocked = true;
+                $this->lockReason = 'Tugas ini terkunci karena Anda belum mempelajari materi "' . $this->assessment->lesson->title . '". Silakan pelajari materi dan selesaikan kuis pemahaman terlebih dahulu.';
+                return;
+            }
+
             if ($this->isPastDue && !$this->assessment->allow_late) {
                 $this->isLocked = true;
                 $this->lockReason = 'Batas waktu pengumpulan telah berakhir. Pengumpulan terlambat tidak diizinkan oleh guru.';
@@ -185,10 +195,23 @@ class KerjakanTugas extends Component
             ->unique()
             ->toArray();
 
-        $this->availableStudents = $classroom->students()
+        $students = $classroom->students()
             ->whereNotIn('users.id', array_merge($assignedStudentIds, [$user->id]))
             ->orderBy('name')
             ->get();
+
+        if ($this->assessment->lesson_id && $this->assessment->lesson) {
+            $lesson = $this->assessment->lesson;
+            $students->each(function ($student) use ($lesson) {
+                $student->is_reading_completed = $lesson->isReadingCompletedBy($student);
+            });
+        } else {
+            $students->each(function ($student) {
+                $student->is_reading_completed = true;
+            });
+        }
+
+        $this->availableStudents = $students;
     }
 
     public function createGroup()
@@ -196,6 +219,12 @@ class KerjakanTugas extends Component
         if (!$this->assessment->isGroup()) return;
 
         $user = auth()->user();
+        
+        if ($this->assessment->lesson_id && $this->assessment->lesson && !$this->assessment->lesson->isReadingCompletedBy($user)) {
+            session()->flash('error', 'Anda belum dapat membuat kelompok karena belum mempelajari/menuntaskan materi pelajaran.');
+            return;
+        }
+
         $classroom = $user->activeClassroom();
         if (!$classroom) {
             session()->flash('error', 'Kelas aktif tidak ditemukan.');
@@ -227,6 +256,20 @@ class KerjakanTugas extends Component
         if ($alreadyAssigned) {
             session()->flash('error', 'Anda atau salah satu anggota yang dipilih sudah terdaftar di kelompok lain.');
             return;
+        }
+
+        // Cek apakah ada anggota yang dipilih namun belum menuntaskan materi
+        if ($this->assessment->lesson_id && $this->assessment->lesson && !empty($this->selectedMemberIds)) {
+            $lesson = $this->assessment->lesson;
+            $unreadyMembers = User::whereIn('id', $this->selectedMemberIds)->get()->filter(function ($member) use ($lesson) {
+                return !$lesson->isReadingCompletedBy($member);
+            });
+
+            if ($unreadyMembers->isNotEmpty()) {
+                $names = $unreadyMembers->pluck('name')->join(', ');
+                session()->flash('error', "Siswa berikut belum membaca/menuntaskan materi pelajaran: {$names}. Seluruh anggota wajib menuntaskan materi sebelum dapat bergabung ke kelompok.");
+                return;
+            }
         }
 
         $group = AssessmentGroup::create([
@@ -268,6 +311,14 @@ class KerjakanTugas extends Component
         if ($already) {
             session()->flash('error', 'Siswa ini sudah bergabung di kelompok lain.');
             return;
+        }
+
+        if ($this->assessment->lesson_id && $this->assessment->lesson) {
+            $targetStudent = User::find($studentId);
+            if ($targetStudent && !$this->assessment->lesson->isReadingCompletedBy($targetStudent)) {
+                session()->flash('error', "Siswa '{$targetStudent->name}' belum membaca/menuntaskan materi pelajaran. Minta yang bersangkutan mempelajari materi terlebih dahulu agar dapat bergabung.");
+                return;
+            }
         }
 
         $this->myGroup->members()->attach($studentId);
@@ -357,10 +408,30 @@ class KerjakanTugas extends Component
 
         RateLimiter::hit('submit-task:' . auth()->id(), 60);
 
+        if ($this->isLessonLocked || ($this->assessment->lesson_id && $this->assessment->lesson && !$this->assessment->lesson->isReadingCompletedBy(auth()->user()))) {
+            session()->flash('error', 'Anda wajib mempelajari materi pelajaran terlebih dahulu sebelum mengumpulkan tugas.');
+            $this->isLocked = true;
+            $this->isLessonLocked = true;
+            return;
+        }
+
         if ($this->assessment->isGroup()) {
             if (!$this->myGroup || !$this->isLeader) {
                 session()->flash('error', 'Hanya Ketua Kelompok yang berhak mengumpulkan tugas kelompok.');
                 return;
+            }
+
+            if ($this->assessment->lesson_id && $this->assessment->lesson) {
+                $lesson = $this->assessment->lesson;
+                $unreadyMembers = $this->myGroup->members->filter(function ($m) use ($lesson) {
+                    return !$lesson->isReadingCompletedBy($m);
+                });
+
+                if ($unreadyMembers->isNotEmpty()) {
+                    $names = $unreadyMembers->pluck('name')->join(', ');
+                    session()->flash('error', "Tugas kelompok belum dapat dikumpulkan karena anggota berikut belum menuntaskan materi: {$names}. Pastikan seluruh anggota telah membaca materi.");
+                    return;
+                }
             }
         }
 
@@ -487,6 +558,30 @@ class KerjakanTugas extends Component
                             'submitted_at' => now(),
                         ]
                     );
+                }
+            }
+        }
+
+        // Sinkronisasi status ketuntasan materi tertaut jika materi berjenjang (Gated Learning)
+        if ($this->assessment->lesson_id) {
+            $linkedLesson = \App\Models\Lesson::find($this->assessment->lesson_id);
+            if ($linkedLesson && $linkedLesson->is_gated) {
+                $studentIds = $this->assessment->isGroup() && $this->myGroup 
+                    ? $this->myGroup->members->pluck('id')->push(auth()->id())->unique() 
+                    : collect([auth()->id()]);
+
+                foreach ($studentIds as $sId) {
+                    $studentUser = \App\Models\User::find($sId);
+                    if ($studentUser && $linkedLesson->isCompletedBy($studentUser)) {
+                        $progress = \App\Models\LessonProgress::firstOrCreate([
+                            'student_id' => $sId,
+                            'lesson_id' => $linkedLesson->id,
+                        ]);
+                        if (!$progress->completed_at) {
+                            $progress->completed_at = now();
+                            $progress->save();
+                        }
+                    }
                 }
             }
         }

@@ -37,6 +37,13 @@ class MateriDetail extends Component
 
     public ?int $activePdfId = null;
 
+    // Gated Learning & Checkpoint Quiz State
+    public array $checkpointAnswers = [];
+    public bool $checkpointPassed = false;
+    public ?int $checkpointScore = null;
+    public bool $checkpointSubmitted = false;
+    public array $checkpointResults = [];
+
     public function mount($element = null, $tp = null, $lesson = null)
     {
         // Handle flexible route parameters:
@@ -121,6 +128,26 @@ class MateriDetail extends Component
                 abort(403, 'Materi ini belum dibuka. Jadwal tayang: ' . Carbon::parse($this->lesson->scheduled_at)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') . ' WIB.');
             }
 
+            // Cek Alur Belajar Berjenjang (Gated Learning Prerequisite)
+            if (!$this->lesson->isUnlockedFor($user)) {
+                $prereq = $this->lesson->getEffectivePrerequisite();
+                $prereqTitle = $prereq ? ('"' . $prereq->title . '"') : 'materi sebelumnya';
+                abort(403, 'Materi ini masih terkunci. Anda harus menyelesaikan materi ' . $prereqTitle . ' terlebih dahulu.');
+            }
+
+            // Load existing checkpoint state
+            $progress = LessonProgress::where('student_id', $user->id)
+                ->where('lesson_id', $this->lesson->id)
+                ->first();
+            if ($progress) {
+                $this->checkpointPassed = $progress->hasPassedCheckpoint();
+                $this->checkpointScore = $progress->checkpoint_score;
+                if (!empty($progress->checkpoint_answers)) {
+                    $this->checkpointAnswers = $progress->checkpoint_answers;
+                    $this->checkpointSubmitted = true;
+                }
+            }
+
             // Load existing student note if any
             $note = Note::where('student_id', $user->id)
                 ->where('lesson_id', $this->lesson->id)
@@ -194,7 +221,21 @@ class MateriDetail extends Component
     {
         if (!$this->lesson || Auth::user()->role !== 'siswa') return;
 
-        $userId = Auth::id();
+        $user = Auth::user();
+
+        if ($this->lesson->is_gated && !$this->lesson->isCompletedBy($user)) {
+            $rule = $this->lesson->completion_rule;
+            $msg = match ($rule) {
+                'checkpoint_only' => 'Materi ini belum selesai. Anda wajib lulus Kuis Pemantik Literasi (100% benar) terlebih dahulu.',
+                'task_only' => 'Materi ini belum selesai. Anda wajib mengumpulkan tugas praktik terlebih dahulu.',
+                'checkpoint_and_task' => 'Materi ini belum selesai. Anda wajib lulus Kuis Pemantik Literasi dan mengumpulkan tugas praktik terlebih dahulu.',
+                default => 'Materi ini belum memenuhi kriteria ketuntasan.',
+            };
+            session()->flash('progress_error', $msg);
+            return;
+        }
+
+        $userId = $user->id;
         $progress = LessonProgress::firstOrCreate([
             'student_id' => $userId,
             'lesson_id' => $this->lesson->id,
@@ -218,10 +259,88 @@ class MateriDetail extends Component
     {
         if (!$this->lesson || Auth::user()->role !== 'siswa') return false;
 
-        return LessonProgress::where('student_id', Auth::id())
-            ->where('lesson_id', $this->lesson->id)
-            ->whereNotNull('completed_at')
-            ->exists();
+        return $this->lesson->isCompletedBy(Auth::user());
+    }
+
+    public function submitCheckpoints(): void
+    {
+        $user = Auth::user();
+        if (!$user || !$this->lesson) return;
+
+        // If in preview mode as teacher/admin, allow simulation
+        $isTeacherPreview = in_array($user->role, ['guru', 'admin']);
+
+        $checkpoints = $this->lesson->checkpoints()->orderBy('sort_order')->get();
+        if ($checkpoints->isEmpty()) return;
+
+        $rules = [];
+        $messages = [];
+        foreach ($checkpoints as $cp) {
+            $rules["checkpointAnswers.{$cp->id}"] = 'required|in:A,B,C,D';
+            $messages["checkpointAnswers.{$cp->id}.required"] = 'Pilih salah satu opsi jawaban untuk soal #' . $cp->sort_order . '.';
+        }
+        $this->validate($rules, $messages);
+
+        $correctCount = 0;
+        $totalCount = $checkpoints->count();
+        $this->checkpointResults = [];
+
+        foreach ($checkpoints as $cp) {
+            $given = $this->checkpointAnswers[$cp->id] ?? null;
+            $isCorrect = $cp->isCorrect($given);
+            if ($isCorrect) {
+                $correctCount++;
+            }
+            $this->checkpointResults[$cp->id] = [
+                'is_correct' => $isCorrect,
+                'correct' => $cp->correct_answer,
+                'explanation' => $cp->explanation,
+                'selected' => $given,
+            ];
+        }
+
+        $this->checkpointScore = $totalCount > 0 ? (int) round(($correctCount / $totalCount) * 100) : 100;
+        $this->checkpointPassed = ($correctCount === $totalCount);
+        $this->checkpointSubmitted = true;
+
+        if (!$isTeacherPreview && $user->role === 'siswa') {
+            $progress = LessonProgress::firstOrCreate([
+                'student_id' => $user->id,
+                'lesson_id' => $this->lesson->id,
+            ]);
+
+            $progress->checkpoint_score = $this->checkpointScore;
+            $progress->checkpoint_answers = $this->checkpointAnswers;
+
+            if ($this->checkpointPassed) {
+                $progress->checkpoint_passed_at = now();
+                $progress->save();
+
+                // Auto-mark completed if lesson criteria met
+                if ($this->lesson->isCompletedBy($user)) {
+                    $progress->completed_at = now();
+                    $progress->save();
+                }
+
+                session()->flash('checkpoint_success', 'Hebat! Anda menjawab semua kuis pemantik dengan benar (Skor 100%). Validasi literasi Anda tuntas!');
+            } else {
+                $progress->save();
+                session()->flash('checkpoint_error', 'Skor Anda: ' . $this->checkpointScore . '%. Anda harus menjawab semua soal dengan benar (100%) untuk memvalidasi literasi membaca. Silakan baca ulang modul materi dan coba lagi.');
+            }
+        } else {
+            // Preview Mode feedback for Guru
+            if ($this->checkpointPassed) {
+                session()->flash('checkpoint_success', '[Mode Pratinjau Guru] Jawaban 100% benar! Sistem akan otomatis membuka materi selanjutnya untuk siswa.');
+            } else {
+                session()->flash('checkpoint_error', '[Mode Pratinjau Guru] Skor: ' . $this->checkpointScore . '%. Siswa harus 100% benar untuk membuka materi berikutnya.');
+            }
+        }
+    }
+
+    public function tryAgainCheckpoints(): void
+    {
+        $this->checkpointSubmitted = false;
+        $this->checkpointResults = [];
     }
 
     public function getProgressDataProperty(): array

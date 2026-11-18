@@ -72,9 +72,9 @@ class TpManagement extends Component
 
     public function render()
     {
-        $allElements = Element::orderBy('id')->get();
+        $allElements = Element::whereIn('code', ['BK', 'LD'])->orderBy('id')->get();
 
-        $elementsQuery = Element::orderBy('id');
+        $elementsQuery = Element::whereIn('code', ['BK', 'LD'])->orderBy('id');
         if ($this->selectedElement) {
             $elementsQuery->where('id', $this->selectedElement);
         }

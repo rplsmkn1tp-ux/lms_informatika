@@ -62,31 +62,42 @@
                         @php
                             $isActive = $lsn->id === $lesson->id;
                             $isLessonDone = false;
+                            $isLessonUnlocked = true;
                             if (auth()->check() && auth()->user()->role === 'siswa') {
-                                $isLessonDone = \App\Models\LessonProgress::where('student_id', auth()->id())
-                                    ->where('lesson_id', $lsn->id)
-                                    ->whereNotNull('completed_at')
-                                    ->exists();
+                                $isLessonDone = $lsn->isCompletedBy(auth()->user());
+                                $isLessonUnlocked = $lsn->isUnlockedFor(auth()->user());
                             }
                         @endphp
 
-                        <a href="{{ $isPreviewMode ? route('guru.lessons.preview', $lsn->id) : route('siswa.belajar.materi', ['element' => $element->code, 'tp' => $tp->code, 'lesson' => $lsn->code ?: $lsn->id]) }}" 
-                           class="flex items-center gap-3 p-2.5 rounded-xl text-xs transition-colors {{ $isActive ? 'bg-[#EEF2FF] font-bold text-[#2347C4] border border-[#C7D2FE]' : 'text-[#4A515C] hover:bg-[#F8F9FA] hover:text-[#15191F]' }}">
-                            @if($isLessonDone)
-                                <span class="w-6 h-6 rounded-full bg-[#2E7D32] text-white flex items-center justify-center shrink-0">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                </span>
-                            @elseif($isActive)
-                                <span class="w-6 h-6 rounded-full bg-[#2347C4] text-white flex items-center justify-center shrink-0 font-bold">
-                                    {{ $idx + 1 }}
-                                </span>
-                            @else
-                                <span class="w-6 h-6 rounded-full bg-gray-100 text-[#4A515C] flex items-center justify-center shrink-0 font-semibold border border-gray-200">
-                                    {{ $idx + 1 }}
-                                </span>
-                            @endif
-                            <span class="truncate {{ $isActive ? 'text-[#15191F]' : '' }}">{{ $lsn->code }} {{ $lsn->title }}</span>
-                        </a>
+                        @if(!$isLessonUnlocked && !$isPreviewMode)
+                            <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl text-xs text-gray-400 bg-gray-50 border border-transparent cursor-not-allowed select-none" title="Terkunci: selesaikan materi prasyarat terlebih dahulu">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center shrink-0">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    </span>
+                                    <span class="truncate">{{ $lsn->code }} {{ $lsn->title }}</span>
+                                </div>
+                                <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            </div>
+                        @else
+                            <a href="{{ $isPreviewMode ? route('guru.lessons.preview', $lsn->id) : route('siswa.belajar.materi', ['element' => $element->code, 'tp' => $tp->code, 'lesson' => $lsn->code ?: $lsn->id]) }}" 
+                               class="flex items-center gap-3 p-2.5 rounded-xl text-xs transition-colors {{ $isActive ? 'bg-[#EEF2FF] font-bold text-[#2347C4] border border-[#C7D2FE]' : 'text-[#4A515C] hover:bg-[#F8F9FA] hover:text-[#15191F]' }}">
+                                @if($isLessonDone)
+                                    <span class="w-6 h-6 rounded-full bg-[#2E7D32] text-white flex items-center justify-center shrink-0">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    </span>
+                                @elseif($isActive)
+                                    <span class="w-6 h-6 rounded-full bg-[#2347C4] text-white flex items-center justify-center shrink-0 font-bold">
+                                        {{ $idx + 1 }}
+                                    </span>
+                                @else
+                                    <span class="w-6 h-6 rounded-full bg-gray-100 text-[#4A515C] flex items-center justify-center shrink-0 font-semibold border border-gray-200">
+                                        {{ $idx + 1 }}
+                                    </span>
+                                @endif
+                                <span class="truncate {{ $isActive ? 'text-[#15191F]' : '' }}">{{ $lsn->code }} {{ $lsn->title }}</span>
+                            </a>
+                        @endif
                     @endforeach
                 </nav>
             </aside>
@@ -158,6 +169,25 @@
                                 </button>
                             @endif
                         </div>
+
+                        @if(session()->has('progress_error'))
+                            <div class="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs font-semibold flex items-center gap-2">
+                                <svg class="w-4 h-4 text-red-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                <span>{{ session('progress_error') }}</span>
+                            </div>
+                        @endif
+
+                        @if($lesson->is_gated)
+                            <div class="px-3.5 py-2.5 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 flex items-center justify-between flex-wrap gap-2">
+                                <span class="font-bold flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-amber-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    <span>Syarat Kelulusan Materi:</span>
+                                </span>
+                                <span class="font-semibold text-amber-900">
+                                    {{ $lesson->completion_rule === 'checkpoint_and_task' ? 'Lulus Kuis Pemantik + Unggah Tugas Praktik' : ($lesson->completion_rule === 'checkpoint_only' ? 'Lulus Kuis Pemantik Literasi (100%)' : ($lesson->completion_rule === 'task_only' ? 'Mengumpulkan Berkas Tugas' : 'Centang Selesai')) }}
+                                </span>
+                            </div>
+                        @endif
                     @endif
                 </div>
 
@@ -292,15 +322,167 @@
                             </section>
                         @endif
 
-                        <!-- ==================== LANGKAH 2: TONTON VIDEO PEMBELAJARAN ==================== -->
+                        <!-- ==================== KUIS PEMANTIK LITERASI (VERIFIKASI MEMBACA) ==================== -->
+                        @if($lesson->checkpoints->isNotEmpty())
+                            @php
+                                $cpStepNumber = $readings->isNotEmpty() ? 2 : 1;
+                            @endphp
+                            <section id="kuis-pemantik" class="bg-white border {{ $checkpointPassed ? 'border-emerald-300 ring-2 ring-emerald-500/20' : 'border-[#2347C4] ring-2 ring-[#2347C4]/15' }} rounded-2xl p-6 shadow-sm flex flex-col gap-5 transition-all">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E4DF] pb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-xl {{ $checkpointPassed ? 'bg-emerald-100 text-emerald-700' : 'bg-[#EEF2FF] text-[#2347C4]' }} flex items-center justify-center font-bold text-sm shrink-0">
+                                            @if($checkpointPassed)
+                                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            @else
+                                                {{ $cpStepNumber }}
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <h2 class="text-base font-bold text-[#15191F] flex items-center gap-2">
+                                                <span>Langkah {{ $cpStepNumber }}: Kuis Pemantik Literasi (Verifikasi Membaca)</span>
+                                                @if($checkpointPassed)
+                                                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-300 flex items-center gap-1">
+                                                        ✓ Lulus (100%)
+                                                    </span>
+                                                @endif
+                                            </h2>
+                                            <p class="text-xs text-[#4A515C] mt-0.5">
+                                                Jawab pertanyaan ringkas dari bahan bacaan di atas untuk memvalidasi pemahaman literasi Anda sebelum membuka materi berikutnya.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    @if($checkpointPassed)
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                                                Skor: {{ $checkpointScore }}% (Tuntas)
+                                            </span>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                @if(session()->has('checkpoint_success'))
+                                    <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold flex items-center gap-2.5">
+                                        <svg class="w-5 h-5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <span>{{ session('checkpoint_success') }}</span>
+                                    </div>
+                                @endif
+
+                                @if(session()->has('checkpoint_error'))
+                                    <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs sm:text-sm font-semibold flex items-center gap-2.5">
+                                        <svg class="w-5 h-5 text-red-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                        <span>{{ session('checkpoint_error') }}</span>
+                                    </div>
+                                @endif
+
+                                <!-- List Pertanyaan Kuis Pemantik -->
+                                <div class="flex flex-col gap-5">
+                                    @foreach($lesson->checkpoints as $cIdx => $cp)
+                                        @php
+                                            $result = $checkpointResults[$cp->id] ?? null;
+                                            $isCorrect = $result['is_correct'] ?? null;
+                                            $selectedAnswer = $checkpointAnswers[$cp->id] ?? null;
+                                            $isSubmitted = $checkpointSubmitted;
+                                        @endphp
+                                        <div class="p-4 sm:p-5 rounded-2xl border {{ $isSubmitted ? ($isCorrect ? 'border-emerald-200 bg-emerald-50/40' : 'border-red-200 bg-red-50/40') : 'border-[#E2E4DF] bg-[#F8F9FA]' }} flex flex-col gap-3 transition-colors">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <span class="text-xs font-bold px-2.5 py-1 rounded-md {{ $isSubmitted ? ($isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800') : 'bg-[#EEF2FF] text-[#2347C4]' }}">
+                                                    Soal {{ $cIdx + 1 }} dari {{ $lesson->checkpoints->count() }}
+                                                </span>
+                                                @if($isSubmitted)
+                                                    @if($isCorrect)
+                                                        <span class="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                                                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                            <span>Benar</span>
+                                                        </span>
+                                                    @else
+                                                        <span class="text-xs font-bold text-red-700 flex items-center gap-1">
+                                                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                            <span>Belum Tepat</span>
+                                                        </span>
+                                                    @endif
+                                                @endif
+                                            </div>
+
+                                            <h3 class="text-sm font-bold text-[#15191F] leading-snug">
+                                                {{ $cp->question }}
+                                            </h3>
+
+                                            <!-- Opsi Jawaban (A, B, C, D) -->
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                                                @foreach($cp->options as $optKey => $optVal)
+                                                    @php
+                                                        $actualKey = is_array($optVal) ? ($optVal['key'] ?? (is_numeric($optKey) ? chr(65 + (int)$optKey) : $optKey)) : $optKey;
+                                                        $actualText = is_array($optVal) ? ($optVal['text'] ?? '') : $optVal;
+                                                        $isChecked = ($selectedAnswer === $actualKey);
+                                                        $isOptionCorrect = ($cp->correct_answer === $actualKey);
+                                                    @endphp
+                                                    <label class="p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-all {{ $isSubmitted ? ($isOptionCorrect ? 'border-emerald-500 bg-emerald-100/70 font-bold text-emerald-900 ring-1 ring-emerald-500' : ($isChecked ? 'border-red-400 bg-red-100/50 text-red-900' : 'border-[#E2E4DF] bg-white text-[#4A515C] opacity-70')) : ($isChecked ? 'border-[#2347C4] bg-[#EEF2FF] shadow-xs' : 'border-[#E2E4DF] bg-white hover:bg-[#F8F9FA] text-[#15191F]') }}">
+                                                        <input type="radio" 
+                                                               wire:model="checkpointAnswers.{{ $cp->id }}" 
+                                                               value="{{ $actualKey }}" 
+                                                               {{ ($checkpointPassed || ($isSubmitted && !$checkpointPassed)) ? 'disabled' : '' }}
+                                                               class="w-4 h-4 text-[#2347C4] border-[#E2E4DF] focus:ring-[#2347C4] mt-0.5">
+                                                        <div class="flex-1 text-xs leading-relaxed">
+                                                            <span class="font-bold mr-1">{{ $actualKey }}.</span>
+                                                            <span>{{ $actualText }}</span>
+                                                        </div>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                            @error("checkpointAnswers.{$cp->id}")
+                                                <span class="text-xs text-red-600 font-medium">{{ $message }}</span>
+                                            @enderror
+
+                                            @if($isSubmitted && $cp->explanation)
+                                                <div class="mt-2 p-3 rounded-xl bg-white border border-[#E2E4DF] text-xs text-[#4A515C] flex items-start gap-2">
+                                                    <span class="font-bold text-[#2347C4] shrink-0">💡 Pembahasan:</span>
+                                                    <span>{{ $cp->explanation }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <!-- Tombol Aksi Kuis Pemantik -->
+                                <div class="flex items-center justify-between flex-wrap gap-3 pt-2 border-t border-[#E2E4DF]">
+                                    <p class="text-xs text-[#4A515C]">
+                                        @if($checkpointPassed)
+                                            ✓ Validasi literasi tuntas. Anda dapat melanjutkan ke langkah berikutnya.
+                                        @else
+                                            Jawab semua soal dengan benar untuk memverifikasi pemahaman bacaan Anda.
+                                        @endif
+                                    </p>
+
+                                    <div class="flex items-center gap-2">
+                                        @if($checkpointSubmitted && !$checkpointPassed)
+                                            <button type="button" wire:click="tryAgainCheckpoints" class="px-5 py-2.5 rounded-xl border border-[#2347C4] text-[#2347C4] hover:bg-[#EEF2FF] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
+                                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                                                <span>Coba Jawab Lagi</span>
+                                            </button>
+                                        @elseif(!$checkpointPassed)
+                                            <button type="button" wire:click="submitCheckpoints" class="px-6 py-2.5 rounded-xl bg-[#2347C4] text-white hover:bg-[#1A3596] text-xs font-bold transition-all shadow-md flex items-center gap-2">
+                                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                <span>Kirim Jawaban Kuis Pemantik</span>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            </section>
+                        @endif
+
+                        <!-- ==================== LANGKAH VIDEO PEMBELAJARAN ==================== -->
                         @if($videos->isNotEmpty())
+                            @php
+                                $vidStepNumber = ($readings->isNotEmpty() ? 1 : 0) + ($lesson->checkpoints->isNotEmpty() ? 1 : 0) + 1;
+                            @endphp
                             <section class="bg-white border border-[#E2E4DF] rounded-2xl p-6 shadow-sm flex flex-col gap-6">
                                 <div class="flex items-center gap-3 border-b border-[#E2E4DF] pb-4">
                                     <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">
-                                        {{ $readings->isNotEmpty() ? '2' : '1' }}
+                                        {{ $vidStepNumber }}
                                     </div>
                                     <div>
-                                        <h2 class="text-base font-bold text-[#15191F]">Langkah 2: Tonton Video Pembelajaran</h2>
+                                        <h2 class="text-base font-bold text-[#15191F]">Langkah {{ $vidStepNumber }}: Tonton Video Pembelajaran</h2>
                                         <p class="text-xs text-[#4A515C] mt-0.5">Simak penjelasan video edukatif berikut untuk memperdalam pemahaman materi.</p>
                                     </div>
                                 </div>
@@ -351,16 +533,19 @@
                             </section>
                         @endif
 
-                        <!-- ==================== LANGKAH 3: KERJAKAN TUGAS ==================== -->
+                        <!-- ==================== LANGKAH TUGAS ==================== -->
                         @if(!empty($tasksData))
+                            @php
+                                $taskStepNumber = ($readings->isNotEmpty() ? 1 : 0) + ($lesson->checkpoints->isNotEmpty() ? 1 : 0) + ($videos->isNotEmpty() ? 1 : 0) + 1;
+                            @endphp
                             <section class="bg-white border border-[#E2E4DF] rounded-2xl p-6 shadow-sm flex flex-col gap-5">
                                 <div class="flex items-center gap-3 border-b border-[#E2E4DF] pb-4">
                                     <div class="w-8 h-8 rounded-xl bg-indigo-100 text-[#2347C4] flex items-center justify-center font-bold text-sm shrink-0">
-                                        {{ ($readings->isNotEmpty() && $videos->isNotEmpty()) ? '3' : (($readings->isNotEmpty() || $videos->isNotEmpty()) ? '2' : '1') }}
+                                        {{ $taskStepNumber }}
                                     </div>
                                     <div>
-                                        <h2 class="text-base font-bold text-[#15191F]">Langkah 3: Kerjakan Tugas</h2>
-                                        <p class="text-xs text-[#4A515C] mt-0.5">Selesaikan tugas terkait materi ini dan kumpulkan file (PPT/PPTX, PDF, Word, dsb).</p>
+                                        <h2 class="text-base font-bold text-[#15191F]">Langkah {{ $taskStepNumber }}: Kerjakan Tugas Praktik</h2>
+                                        <p class="text-xs text-[#4A515C] mt-0.5">Selesaikan tugas terkait materi ini dan kumpulkan file (PPT/PPTX, PDF, Word, Excel, dsb).</p>
                                     </div>
                                 </div>
 
@@ -382,6 +567,19 @@
                                                         <span>Tenggat: <strong class="{{ $tItem['is_past_due'] ? 'text-red-600 font-bold' : 'text-[#15191F]' }}">{{ $tItem['due_formatted'] }}</strong></span>
                                                         <span>•</span>
                                                         <span>Bobot: <strong>{{ $ass->max_score ?? 100 }} Poin</strong></span>
+                                                        @if(!empty($ass->teacher_attachments))
+                                                            <span>•</span>
+                                                            <span class="inline-flex items-center gap-1 text-[#2347C4] font-semibold bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                                                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                                                <span>Ada Template LKPD</span>
+                                                            </span>
+                                                        @endif
+                                                        @if(!empty($ass->rubric))
+                                                            <span>•</span>
+                                                            <span class="inline-flex items-center gap-1 text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                                                                <span>🎯 Ada Rubrik KKTP</span>
+                                                            </span>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -404,12 +602,19 @@
 
                                                 <!-- Tombol Kerjakan -->
                                                 @if(!$isPreviewMode)
-                                                    <a href="{{ route('siswa.tugas.kerjakan', $ass->id) }}" 
-                                                       class="px-4 py-2 bg-[#2347C4] text-white rounded-xl text-xs font-bold hover:bg-[#1A3596] shadow-sm transition-colors flex items-center gap-1.5"
-                                                       style="color: #FFFFFF !important; text-decoration: none;">
-                                                        <span style="color: #FFFFFF !important;">{{ $isSub ? 'Lihat Tugas' : 'Kerjakan Sekarang' }}</span>
-                                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #FFFFFF !important; stroke: #FFFFFF !important;"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                                                    </a>
+                                                    @if($lesson->checkpoints->isNotEmpty() && !$checkpointPassed && !$isSub)
+                                                        <span class="px-3.5 py-2 bg-slate-100 text-slate-400 border border-slate-200 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 cursor-not-allowed select-none" title="Luluskan Kuis Pemantik terlebih dahulu untuk membuka tugas ini">
+                                                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                            <span>Terkunci (Luluskan Kuis Pemantik Dulu)</span>
+                                                        </span>
+                                                    @else
+                                                        <a href="{{ route('siswa.tugas.kerjakan', $ass->id) }}" 
+                                                           class="px-4 py-2 bg-[#2347C4] text-white rounded-xl text-xs font-bold hover:bg-[#1A3596] shadow-sm transition-colors flex items-center gap-1.5"
+                                                           style="color: #FFFFFF !important; text-decoration: none;">
+                                                            <span style="color: #FFFFFF !important;">{{ $isSub ? 'Lihat Tugas' : 'Kerjakan Sekarang' }}</span>
+                                                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #FFFFFF !important; stroke: #FFFFFF !important;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                                        </a>
+                                                    @endif
                                                 @endif
                                             </div>
                                         </div>
