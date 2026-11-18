@@ -176,6 +176,37 @@ class Lesson extends Model
     }
 
     /**
+     * Cari materi prasyarat paling awal yang belum diselesaikan siswa dalam rantai prasyarat.
+     */
+    public function getEarliestIncompletePrerequisite(User $student): ?Lesson
+    {
+        if ($student->role !== 'siswa') {
+            return null;
+        }
+
+        $visited = [];
+        $current = $this;
+
+        while ($prereq = $current->getEffectivePrerequisite()) {
+            // Cegah siklus / infinite loop
+            if (in_array($prereq->id, $visited, true)) {
+                break;
+            }
+            $visited[] = $prereq->id;
+
+            if (!$prereq->isCompletedBy($student)) {
+                // Periksa apakah prereq ini punya materi sebelumnya lagi yang belum selesai
+                $earlier = $prereq->getEarliestIncompletePrerequisite($student);
+                return $earlier ?: $prereq;
+            }
+
+            $current = $prereq;
+        }
+
+        return null;
+    }
+
+    /**
      * Memeriksa apakah materi ini sudah terbuka (unlocked) bagi siswa tertentu.
      */
     public function isUnlockedFor(User $student): bool

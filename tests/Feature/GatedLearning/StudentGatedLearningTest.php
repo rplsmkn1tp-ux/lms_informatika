@@ -116,7 +116,7 @@ test('student can access first lesson without prerequisites', function () {
     ->assertSee('Kuis Pemantik Literasi');
 });
 
-test('student is blocked with 403 when trying to access locked second lesson directly', function () {
+test('student is redirected to prerequisite lesson when trying to access locked second lesson directly', function () {
     $this->actingAs($this->student);
 
     Livewire::test(MateriDetail::class, [
@@ -124,7 +124,9 @@ test('student is blocked with 403 when trying to access locked second lesson dir
         'tp' => $this->tp,
         'lesson' => $this->lesson2,
     ])
-    ->assertStatus(403);
+    ->assertRedirect($this->lesson1->siswa_url);
+
+    expect(session('warning'))->toContain('masih terkunci');
 });
 
 test('student answering checkpoint quiz incorrectly fails verification and next lesson remains locked', function () {

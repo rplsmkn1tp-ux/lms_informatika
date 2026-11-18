@@ -206,19 +206,20 @@ test('full end-to-end simulation of gated learning workflow from teacher setup t
     ->assertSee('🔒 Selesaikan prasyarat: "Praktik Pembuatan Surat Resmi &amp; Tabel"', false);
 
     // 2.2 Uji Keamanan: Siswa mencoba melompati gerbang akses (Direct URL)
+    // Siswa dialihkan otomatis ke materi prasyarat pertama (Lesson 1) dengan notifikasi
     Livewire::test(MateriDetail::class, [
         'element' => $this->element,
         'tp' => $this->tp,
         'lesson' => $lesson2,
     ])
-    ->assertStatus(403);
+    ->assertRedirect($lesson1->siswa_url);
 
     Livewire::test(MateriDetail::class, [
         'element' => $this->element,
         'tp' => $this->tp,
         'lesson' => $lesson3,
     ])
-    ->assertStatus(403);
+    ->assertRedirect($lesson1->siswa_url);
 
     // =========================================================================
     // STEP 3: SISWA BELAJAR MODUL 1 & VERIFIKASI MEMBACA (CHECKPOINT QUIZ)

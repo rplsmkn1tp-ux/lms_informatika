@@ -15,6 +15,13 @@
         </div>
     </div>
 
+    @if(session()->has('warning'))
+        <div style="padding: 14px 18px; border-radius: 14px; background: #FFFBEB; border: 1px solid #FCD34D; color: #78350F; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #D97706; flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>{{ session('warning') }}</span>
+        </div>
+    @endif
+
     <div style="display: flex; flex-direction: column; gap: 24px">
         @forelse($tps as $index => $tp)
             <article style="background: #FFFFFF; border: 1px solid #E2E4DF; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 16px">

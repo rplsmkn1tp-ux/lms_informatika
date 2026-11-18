@@ -67,8 +67,12 @@ class DaftarTugas extends Component
             $isPastDue = $dueAtCarbon && $now->gt($dueAtCarbon);
             
             $isLessonLocked = false;
+            $targetLesson = null;
             if (!$isSubmitted && $assessment->lesson_id && $assessment->lesson) {
                 $isLessonLocked = !$assessment->lesson->isReadingCompletedBy($user);
+                if ($isLessonLocked) {
+                    $targetLesson = $assessment->lesson->getEarliestIncompletePrerequisite($user) ?? $assessment->lesson;
+                }
             }
 
             // Compute user-friendly status badge and remaining time
@@ -123,7 +127,7 @@ class DaftarTugas extends Component
             $assessment->userSubmission = $submission;
             $assessment->dueAtCarbon = $dueAtCarbon;
             $assessment->isLessonLocked = $isLessonLocked;
-            $assessment->lessonUrl = $assessment->lesson?->siswa_url;
+            $assessment->lessonUrl = $targetLesson ? $targetLesson->siswa_url : $assessment->lesson?->siswa_url;
 
             return $assessment;
         })->filter(function ($assessment) {

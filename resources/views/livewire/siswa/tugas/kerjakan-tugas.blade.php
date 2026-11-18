@@ -210,10 +210,18 @@
                         </p>
                     </div>
                 </div>
-                @if($assessment->lesson && $assessment->lesson->siswa_url)
-                    <a href="{{ $assessment->lesson->siswa_url }}" 
+                @php
+                    $targetLesson = $targetLessonToStudy ?? $assessment->lesson;
+                    $lessonUrl = $targetLesson?->siswa_url;
+                    $isDifferentPrereq = $targetLesson && $assessment->lesson_id && (int)$targetLesson->id !== (int)$assessment->lesson_id;
+                    $btnLabel = $isDifferentPrereq 
+                        ? 'Buka Materi Prasyarat: ' . \Illuminate\Support\Str::limit($targetLesson->title, 32)
+                        : 'Buka & Pelajari Materi Sekarang';
+                @endphp
+                @if($lessonUrl)
+                    <a href="{{ $lessonUrl }}" 
                        style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px; background: #2347C4; color: #FFFFFF; font-weight: 700; font-size: 13px; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 12px rgba(35, 71, 196, 0.25);">
-                        <span>Buka & Pelajari Materi Sekarang</span>
+                        <span>{{ $btnLabel }}</span>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </a>
                 @endif

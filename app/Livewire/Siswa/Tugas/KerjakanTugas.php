@@ -4,6 +4,7 @@ namespace App\Livewire\Siswa\Tugas;
 
 use App\Models\Assessment;
 use App\Models\AssessmentGroup;
+use App\Models\Lesson;
 use App\Models\Question;
 use App\Models\Submission;
 use App\Models\SubmissionAnswer;
@@ -40,6 +41,7 @@ class KerjakanTugas extends Component
     // Status & Policy
     public bool $isLocked = false;
     public bool $isLessonLocked = false;
+    public ?Lesson $targetLessonToStudy = null;
     public bool $canResubmit = false;
     public bool $isPastDue = false;
     public string $lockReason = '';
@@ -157,7 +159,16 @@ class KerjakanTugas extends Component
             if ($this->assessment->lesson_id && $this->assessment->lesson && !$this->assessment->lesson->isReadingCompletedBy($user)) {
                 $this->isLocked = true;
                 $this->isLessonLocked = true;
-                $this->lockReason = 'Tugas ini terkunci karena Anda belum mempelajari materi "' . $this->assessment->lesson->title . '". Silakan pelajari materi dan selesaikan kuis pemahaman terlebih dahulu.';
+
+                // Cari materi prasyarat aktif yang harus diselesaikan lebih dulu
+                $earliestPrereq = $this->assessment->lesson->getEarliestIncompletePrerequisite($user);
+                if ($earliestPrereq) {
+                    $this->targetLessonToStudy = $earliestPrereq;
+                    $this->lockReason = 'Tugas ini terkait dengan materi "' . $this->assessment->lesson->title . '". Materi tersebut masih terkunci karena Anda belum menyelesaikan materi prasyarat: "' . $earliestPrereq->title . '".';
+                } else {
+                    $this->targetLessonToStudy = $this->assessment->lesson;
+                    $this->lockReason = 'Tugas ini terkunci karena Anda belum mempelajari materi "' . $this->assessment->lesson->title . '". Silakan pelajari materi dan selesaikan kuis pemahaman terlebih dahulu.';
+                }
                 return;
             }
 

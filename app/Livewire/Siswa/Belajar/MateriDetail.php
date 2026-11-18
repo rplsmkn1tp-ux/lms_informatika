@@ -121,18 +121,36 @@ class MateriDetail extends Component
             // Cek status Terjadwal / Available From
             $now = Carbon::now();
             if ($classroomPivot->pivot->available_from && Carbon::parse($classroomPivot->pivot->available_from)->isFuture()) {
-                abort(403, 'Materi ini belum dibuka. Jadwal tayang: ' . Carbon::parse($classroomPivot->pivot->available_from)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') . ' WIB.');
+                $jadwal = Carbon::parse($classroomPivot->pivot->available_from)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i');
+                session()->flash('warning', 'Materi "' . $this->lesson->title . '" belum dibuka. Jadwal tayang: ' . $jadwal . ' WIB.');
+                $elementCode = $this->lesson->learningObjective?->element?->code ?? 'BK';
+                $this->redirectRoute('siswa.belajar.tp', ['element' => $elementCode], navigate: true);
+                return;
             }
 
             if ($this->lesson->status === 'scheduled' && $this->lesson->scheduled_at && Carbon::parse($this->lesson->scheduled_at)->isFuture()) {
-                abort(403, 'Materi ini belum dibuka. Jadwal tayang: ' . Carbon::parse($this->lesson->scheduled_at)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') . ' WIB.');
+                $jadwal = Carbon::parse($this->lesson->scheduled_at)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i');
+                session()->flash('warning', 'Materi "' . $this->lesson->title . '" belum dibuka. Jadwal tayang: ' . $jadwal . ' WIB.');
+                $elementCode = $this->lesson->learningObjective?->element?->code ?? 'BK';
+                $this->redirectRoute('siswa.belajar.tp', ['element' => $elementCode], navigate: true);
+                return;
             }
 
             // Cek Alur Belajar Berjenjang (Gated Learning Prerequisite)
             if (!$this->lesson->isUnlockedFor($user)) {
-                $prereq = $this->lesson->getEffectivePrerequisite();
-                $prereqTitle = $prereq ? ('"' . $prereq->title . '"') : 'materi sebelumnya';
-                abort(403, 'Materi ini masih terkunci. Anda harus menyelesaikan materi ' . $prereqTitle . ' terlebih dahulu.');
+                $targetPrereq = $this->lesson->getEarliestIncompletePrerequisite($user) ?: $this->lesson->getEffectivePrerequisite();
+                $prereqTitle = $targetPrereq ? ('"' . $targetPrereq->title . '"') : 'materi sebelumnya';
+
+                if ($targetPrereq && $targetPrereq->siswa_url) {
+                    session()->flash('warning', 'Materi "' . $this->lesson->title . '" masih terkunci. Anda dialihkan ke materi prasyarat: ' . $prereqTitle . ' terlebih dahulu.');
+                    $this->redirect($targetPrereq->siswa_url, navigate: true);
+                    return;
+                }
+
+                $elementCode = $this->lesson->learningObjective?->element?->code ?? 'BK';
+                session()->flash('warning', 'Materi "' . $this->lesson->title . '" masih terkunci. Anda harus menyelesaikan materi ' . $prereqTitle . ' terlebih dahulu.');
+                $this->redirectRoute('siswa.belajar.tp', ['element' => $elementCode], navigate: true);
+                return;
             }
 
             // Load existing checkpoint state
