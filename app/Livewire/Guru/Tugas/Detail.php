@@ -445,6 +445,34 @@ class Detail extends Component
         session()->flash('success', "Siswa {$student->name} dikeluarkan dari kelompok.");
     }
 
+    public function deleteGroupTeacher(int $groupId)
+    {
+        $group = AssessmentGroup::where('assessment_id', $this->assessment->id)->findOrFail($groupId);
+        $groupName = $group->name;
+
+        // Lepaskan relasi anggota kelompok
+        $group->members()->detach();
+
+        // Hapus submission draf / belum dinilai yang terkait kelompok ini agar siswa bisa submit ulang di kelompok baru
+        Submission::where('assessment_id', $this->assessment->id)
+            ->where('assessment_group_id', $groupId)
+            ->where('status', '!=', Submission::STATUS_GRADED)
+            ->delete();
+
+        // Jika ada submission yang sudah dinilai, lepaskan tautan group_id agar data nilai siswa tetap aman
+        Submission::where('assessment_id', $this->assessment->id)
+            ->where('assessment_group_id', $groupId)
+            ->update(['assessment_group_id' => null]);
+
+        $group->delete();
+
+        if ($this->selectedGroupId === $groupId) {
+            $this->closeGroupGradingModal();
+        }
+
+        session()->flash('success', "Kelompok '{$groupName}' berhasil dihapus. Anggota kelompok dapat membuat atau bergabung kembali ke kelompok lain.");
+    }
+
     public function render()
     {
         // Kumpulkan semua kelas penugasan + kelas dari siswa yang sudah mengumpulkan tugas ini

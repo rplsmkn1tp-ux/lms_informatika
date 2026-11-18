@@ -343,23 +343,35 @@
                                     @endif
                                 </td>
                                 <td class="py-3.5 px-5 text-right whitespace-nowrap">
-                                    <button 
-                                        type="button" 
-                                        wire:click="openGroupGradingModal({{ $grp->id }})" 
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:opacity-95"
-                                        style="{{ $isGraded ? 'background: #F4F5F2; color: #374151; border: 1px solid #D1D5DB;' : 'background: #6B21A8; color: #FFFFFF; border: 1px solid #581C87;' }}"
-                                    >
-                                        @if($isGraded)
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                            <span>Edit Nilai Kelompok</span>
-                                        @elseif($isSubmitted)
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-                                            <span>Periksa & Nilai Kelompok</span>
-                                        @else
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                                            <span>Beri Nilai Kelompok</span>
-                                        @endif
-                                    </button>
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button 
+                                            type="button" 
+                                            wire:click="openGroupGradingModal({{ $grp->id }})" 
+                                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:opacity-95"
+                                            style="{{ $isGraded ? 'background: #F4F5F2; color: #374151; border: 1px solid #D1D5DB;' : 'background: #6B21A8; color: #FFFFFF; border: 1px solid #581C87;' }}"
+                                        >
+                                            @if($isGraded)
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                                <span>Edit Nilai Kelompok</span>
+                                            @elseif($isSubmitted)
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                                                <span>Periksa & Nilai Kelompok</span>
+                                            @else
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                                <span>Beri Nilai Kelompok</span>
+                                            @endif
+                                        </button>
+
+                                        <button 
+                                            type="button" 
+                                            wire:click="deleteGroupTeacher({{ $grp->id }})" 
+                                            wire:confirm="Yakin ingin membubarkan/menghapus kelompok '{{ $grp->name }}'? Anggota kelompok akan kembali mandiri dan dapat membentuk kelompok baru."
+                                            class="inline-flex items-center justify-center p-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer shadow-sm"
+                                            title="Bubarkan / Hapus Kelompok"
+                                        >
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @empty

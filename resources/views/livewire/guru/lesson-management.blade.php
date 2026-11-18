@@ -521,13 +521,22 @@
                             </div>
                             
                             <div class="flex items-center gap-2 shrink-0">
-                                <button type="button" wire:click="toggleCreatingNewTask" class="px-4 py-2 {{ $isCreatingNewTask ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-[#2347C4] text-white hover:bg-[#1A3596]' }} rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-1.5">
+                                <button type="button" wire:click="toggleCreatingNewTask" class="px-4 py-2 {{ $isCreatingNewTask ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-[#2347C4] text-white hover:bg-[#1A3596]' }} rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
                                     @if($isCreatingNewTask)
                                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                         <span>Tutup Form Tugas Baru</span>
                                     @else
                                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                        <span>+ Buat Tugas Asesmen Langsung di Sini</span>
+                                        <span>Buat Tugas Asesmen Langsung di Sini</span>
+                                    @endif
+                                </button>
+                                <button type="button" wire:click="openTaskBankModal" class="px-3.5 py-2 bg-white text-[#2347C4] hover:bg-[#EEF2FF] border border-[#2347C4] rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                                    <span>Pilih dari Bank Tugas</span>
+                                    @if(!empty($selectedTaskIds))
+                                        <span class="w-5 h-5 rounded-full bg-[#2347C4] text-white text-[10px] flex items-center justify-center font-bold">
+                                            {{ count($selectedTaskIds) }}
+                                        </span>
                                     @endif
                                 </button>
                             </div>
@@ -647,35 +656,67 @@
                             </div>
                         @endif
 
-                        <!-- Pilih dari Tugas yang Sudah Ada -->
-                        <div class="flex flex-col gap-2 {{ $isCreatingNewTask ? 'pt-3 border-t border-[#E2E4DF]' : '' }}">
-                            <label class="block text-xs font-bold text-[#4A515C] uppercase tracking-wider">
-                                {{ $isCreatingNewTask ? 'Atau Hubungkan Tugas Tambahan yang Sudah Ada' : 'Hubungkan Tugas yang Sudah Dibuat Sebelumnya' }}
-                            </label>
-                            @if($availableTasksForModal->isEmpty())
-                                <div class="text-center py-6 bg-white rounded-xl border border-dashed border-[#E2E4DF]">
-                                    <p class="text-xs text-[#4A515C]">Belum ada data tugas sebelumnya pada sistem.</p>
-                                    @if(!$isCreatingNewTask)
-                                        <button type="button" wire:click="toggleCreatingNewTask" class="inline-block mt-2 text-xs font-bold text-[#2347C4] hover:underline">
-                                            + Buat Tugas Asesmen Langsung di Sini
+                        <!-- Daftar Tugas Praktik yang Sedang Terhubung (Opsi 2) -->
+                        <div class="flex flex-col gap-3 {{ $isCreatingNewTask ? 'pt-3 border-t border-[#E2E4DF]' : '' }}">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-[#4A515C] uppercase tracking-wider">
+                                    Tugas Praktik Terhubung ({{ $linkedTasks->count() }})
+                                </label>
+                                @if($linkedTasks->isNotEmpty())
+                                    <button type="button" wire:click="openTaskBankModal" class="text-xs font-bold text-[#2347C4] hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>+ Hubungkan Tugas Lain</span>
+                                    </button>
+                                @endif
+                            </div>
+
+                            @if($linkedTasks->isEmpty())
+                                <div class="text-center py-7 px-4 bg-white rounded-xl border border-dashed border-[#E2E4DF] flex flex-col items-center gap-2">
+                                    <div class="w-10 h-10 rounded-full bg-[#F4F5F2] flex items-center justify-center text-[#8A92A0]">
+                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                    </div>
+                                    <p class="text-xs font-bold text-[#15191F]">Belum ada tugas praktik yang terhubung ke materi ini</p>
+                                    <p class="text-[11px] text-[#4A515C] max-w-sm">Hubungkan tugas dari Bank Tugas Asesmen atau buat tugas baru langsung menggunakan formulir terpadu.</p>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <button type="button" wire:click="openTaskBankModal" class="px-3.5 py-1.5 bg-[#EEF2FF] text-[#2347C4] rounded-xl text-xs font-bold hover:bg-[#E0E7FF] transition-colors flex items-center gap-1.5 cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                                            <span>Buka Bank Tugas</span>
                                         </button>
-                                    @endif
+                                        @if(!$isCreatingNewTask)
+                                            <button type="button" wire:click="toggleCreatingNewTask" class="px-3.5 py-1.5 bg-white border border-[#E2E4DF] text-[#15191F] rounded-xl text-xs font-bold hover:bg-[#F8F9FA] transition-colors flex items-center gap-1.5 cursor-pointer">
+                                                <span>+ Buat Tugas Baru</span>
+                                            </button>
+                                        @endif
+                                    </div>
                                 </div>
                             @else
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-56 overflow-y-auto p-1">
-                                    @foreach($availableTasksForModal as $task)
-                                        @php
-                                            $isSelected = in_array($task->id, $selectedTaskIds);
-                                        @endphp
-                                        <label class="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors {{ $isSelected ? 'border-[#2347C4] bg-[#EEF2FF]' : 'border-[#E2E4DF] bg-white hover:bg-[#F8F9FA]' }}">
-                                            <input type="checkbox" wire:model="selectedTaskIds" value="{{ $task->id }}" class="w-4 h-4 text-[#2347C4] rounded border-[#E2E4DF] focus:ring-[#2347C4] mt-0.5">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @foreach($linkedTasks as $task)
+                                        <div class="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-[#2347C4] bg-white shadow-xs">
                                             <div class="flex-1 min-w-0">
-                                                <span class="text-sm font-bold text-[#15191F] block truncate">{{ $task->title }}</span>
-                                                <span class="text-[11px] text-[#4A515C] block">
-                                                    {{ $task->due_at ? 'Tenggat: ' . \Carbon\Carbon::parse($task->due_at)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') : 'Tanpa tenggat' }}
-                                                </span>
+                                                <div class="flex items-center gap-2 flex-wrap mb-1">
+                                                    <span class="text-xs font-bold text-[#15191F] truncate block">{{ $task->title }}</span>
+                                                    @if($task->isGroup())
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                            Kelompok
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                <div class="flex items-center gap-2 text-[11px] text-[#4A515C]">
+                                                    <span>{{ $task->due_at ? 'Tenggat: ' . \Carbon\Carbon::parse($task->due_at)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') : 'Tanpa tenggat' }}</span>
+                                                    <span>•</span>
+                                                    <span>Max: {{ $task->max_score }}</span>
+                                                </div>
                                             </div>
-                                        </label>
+                                            <button 
+                                                type="button" 
+                                                wire:click="unlinkTask({{ $task->id }})" 
+                                                wire:confirm="Lepaskan hubungan tugas '{{ $task->title }}' dari materi ini?"
+                                                class="p-2 rounded-xl text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer flex-shrink-0"
+                                                title="Lepas / Hapus Tugas dari Materi Ini"
+                                            >
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                                            </button>
+                                        </div>
                                     @endforeach
                                 </div>
                             @endif
@@ -1732,4 +1773,110 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Bank Tugas Asesmen (Opsi 2) -->
+    @if($showTaskBankModal)
+        <div class="fixed inset-0 z-[60] overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 md:p-6">
+            <div class="bg-white rounded-2xl shadow-2xl border border-[#E2E4DF] max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200 my-auto">
+                <!-- Modal Header -->
+                <div class="p-4 sm:p-5 border-b border-[#EDEEEA] flex items-center justify-between bg-zinc-50/70 shrink-0">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base font-bold text-[#15191F] flex items-center gap-2">
+                                <span>📂 Bank Tugas Asesmen Praktik</span>
+                            </h3>
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#EEF2FF] text-[#2347C4] border border-[#C7D2FE]">
+                                {{ count($selectedTaskIds) }} Terpilih
+                            </span>
+                        </div>
+                        <p class="text-xs text-[#4A515C] mt-0.5">Centang tugas yang ingin dihubungkan ke materi modul ini.</p>
+                    </div>
+                    <button type="button" wire:click="closeTaskBankModal" class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors cursor-pointer">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+
+                <!-- Search & Filter Bar -->
+                <div class="p-3.5 bg-white border-b border-[#EDEEEA] flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center shrink-0">
+                    <div class="relative flex-1">
+                        <svg class="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input 
+                            type="text" 
+                            wire:model.live.debounce.300ms="taskBankSearch" 
+                            placeholder="Cari judul tugas asesmen..." 
+                            class="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border-[#E2E4DF] bg-[#F8F9FA] focus:bg-white focus:border-[#2347C4] focus:ring-[#2347C4]"
+                        >
+                    </div>
+                    @if(!empty($availableTps))
+                        <select wire:model.live="taskBankTpFilter" class="text-xs rounded-xl border-[#E2E4DF] bg-[#F8F9FA] py-2 px-3 text-[#15191F] focus:border-[#2347C4]">
+                            <option value="">Semua TP</option>
+                            @foreach($availableTps as $tpItem)
+                                <option value="{{ $tpItem->id }}">{{ $tpItem->code }}: {{ \Illuminate\Support\Str::limit($tpItem->title, 28) }}</option>
+                            @endforeach
+                        </select>
+                    @endif
+                </div>
+
+                <!-- Task List -->
+                <div class="p-4 overflow-y-auto flex-1 space-y-2.5">
+                    @forelse($availableTasksForModal as $task)
+                        @php
+                            $isSelected = in_array($task->id, $selectedTaskIds);
+                            $isLinkedToOther = $task->lesson_id && (int)$task->lesson_id !== (int)$lessonId;
+                        @endphp
+                        <label class="flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all {{ $isSelected ? 'border-[#2347C4] bg-[#EEF2FF]' : 'border-[#E2E4DF] bg-white hover:bg-[#F8F9FA]' }}">
+                            <input 
+                                type="checkbox" 
+                                wire:click="toggleTaskSelection({{ $task->id }})" 
+                                @checked($isSelected)
+                                class="w-4 h-4 text-[#2347C4] rounded border-[#E2E4DF] focus:ring-[#2347C4] mt-0.5 cursor-pointer"
+                            >
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap mb-1">
+                                    <span class="text-xs font-bold text-[#15191F]">{{ $task->title }}</span>
+                                    @if($task->isGroup())
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                            Kelompok
+                                        </span>
+                                    @endif
+                                    @if($isSelected)
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            ✓ Terpilih
+                                        </span>
+                                    @elseif($isLinkedToOther)
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200" title="Jika dipilih, tugas akan dipindahkan ke materi ini saat disimpan">
+                                            ⚠ Terhubung di: {{ $task->lesson?->title ?? 'Materi lain' }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="flex items-center gap-2.5 text-[11px] text-[#4A515C]">
+                                    <span>Tenggat: {{ $task->due_at ? \Carbon\Carbon::parse($task->due_at)->setTimezone('Asia/Jakarta')->translatedFormat('d M Y, H:i') : 'Tanpa tenggat' }}</span>
+                                    <span>•</span>
+                                    <span>Skor: {{ $task->max_score }}</span>
+                                    @if($task->learningObjective)
+                                        <span>•</span>
+                                        <span class="font-mono text-zinc-400">TP: {{ $task->learningObjective->code }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </label>
+                    @empty
+                        <div class="text-center py-10 bg-[#F8F9FA] rounded-xl border border-dashed border-[#E2E4DF]">
+                            <p class="text-xs text-[#4A515C] font-medium">Tidak ada tugas asesmen yang cocok dengan filter / pencarian.</p>
+                        </div>
+                    @endforelse
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="p-4 border-t border-[#EDEEEA] bg-zinc-50 flex items-center justify-between shrink-0">
+                    <span class="text-xs text-zinc-600 font-medium">
+                        <strong>{{ count($selectedTaskIds) }}</strong> tugas terpilih untuk materi ini
+                    </span>
+                    <button type="button" wire:click="closeTaskBankModal" class="px-4 py-2 bg-[#2347C4] text-white rounded-xl font-bold text-xs hover:bg-[#1A3596] shadow-sm transition-colors cursor-pointer">
+                        Selesai Memilih
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

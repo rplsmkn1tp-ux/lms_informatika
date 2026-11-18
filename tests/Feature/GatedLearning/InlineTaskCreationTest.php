@@ -134,7 +134,7 @@ test('guru can toggle inline task creator and UI updates accordingly', function 
         ->call('createForTp', $this->tp->id)
         ->set('title', 'Modul Excel VLOOKUP')
         ->assertSet('isCreatingNewTask', false)
-        ->assertSee('+ Buat Tugas Asesmen Langsung di Sini')
+        ->assertSee('Buat Tugas Asesmen Langsung di Sini')
         ->assertDontSee('Formulir Tugas Praktik Baru (Terpadu)')
         ->call('toggleCreatingNewTask')
         ->assertSet('isCreatingNewTask', true)
@@ -144,8 +144,38 @@ test('guru can toggle inline task creator and UI updates accordingly', function 
         ->assertSee('Kriteria Ketercapaian TP (KKTP / Rubrik Penilaian)')
         ->call('toggleCreatingNewTask')
         ->assertSet('isCreatingNewTask', false)
-        ->assertSee('+ Buat Tugas Asesmen Langsung di Sini')
+        ->assertSee('Buat Tugas Asesmen Langsung di Sini')
         ->assertDontSee('Formulir Tugas Praktik Baru (Terpadu)');
+});
+
+test('guru can open task bank modal, select tasks, and unlink tasks', function () {
+    $existingTask = Assessment::create([
+        'title' => 'Tugas Praktik Bank Soal Word',
+        'type' => 'tugas',
+        'created_by' => $this->teacher->id,
+        'learning_objective_id' => $this->tp->id,
+        'element_id' => $this->element->id,
+        'max_score' => 100,
+        'status' => 'published',
+    ]);
+
+    Livewire::actingAs($this->teacher)
+        ->test(LessonManagement::class)
+        ->call('createForTp', $this->tp->id)
+        ->assertSet('showTaskBankModal', false)
+        ->call('openTaskBankModal')
+        ->assertSet('showTaskBankModal', true)
+        ->assertSee('Bank Tugas Asesmen Praktik')
+        ->assertSee('Tugas Praktik Bank Soal Word')
+        ->call('toggleTaskSelection', $existingTask->id)
+        ->assertSet('selectedTaskIds', [$existingTask->id])
+        ->call('closeTaskBankModal')
+        ->assertSet('showTaskBankModal', false)
+        ->assertSee('Tugas Praktik Terhubung (1)')
+        ->assertSee('Tugas Praktik Bank Soal Word')
+        ->call('unlinkTask', $existingTask->id)
+        ->assertSet('selectedTaskIds', [])
+        ->assertSee('Belum ada tugas praktik yang terhubung');
 });
 
 

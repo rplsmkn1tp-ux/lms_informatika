@@ -82,6 +82,11 @@ class LessonManagement extends Component
     public string $newTaskKktp = '';
     public $newTaskTemplateFile = null;
 
+    // Task Bank Modal (Opsi 2: Bank Tugas Asesmen)
+    public bool $showTaskBankModal = false;
+    public string $taskBankSearch = '';
+    public string $taskBankTpFilter = '';
+
     // Gated Learning & Checkpoints
     public bool $is_gated = false;
     public string $completion_rule = 'standard'; // standard, checkpoint_only, task_only, checkpoint_and_task
@@ -410,14 +415,28 @@ class LessonManagement extends Component
                 ->get();
         }
 
-        // Available tasks for linking in modal
-        $availableTasksForModal = Assessment::where('type', 'tugas')
+        // Linked tasks for current lesson
+        $linkedTasks = !empty($this->selectedTaskIds)
+            ? Assessment::whereIn('id', $this->selectedTaskIds)->get()
+            : collect();
+
+        // Available tasks for linking in modal (Bank Tugas Asesmen)
+        $taskBankQuery = Assessment::where('type', 'tugas')
             ->where(function ($q) {
                 $q->where('created_by', Auth::id())
                   ->orWhere('created_by', 1);
             })
-            ->orderBy('title')
-            ->get();
+            ->with(['lesson', 'learningObjective']);
+
+        if (!empty($this->taskBankSearch)) {
+            $taskBankQuery->where('title', 'like', '%' . trim($this->taskBankSearch) . '%');
+        }
+
+        if (!empty($this->taskBankTpFilter)) {
+            $taskBankQuery->where('learning_objective_id', $this->taskBankTpFilter);
+        }
+
+        $availableTasksForModal = $taskBankQuery->orderBy('title')->get();
 
         // Available prerequisite lessons for modal
         $availablePrerequisitesForModal = collect();
@@ -436,6 +455,7 @@ class LessonManagement extends Component
             'availableElements' => $availableElements,
             'availableTps' => $availableTps,
             'availableTasksForModal' => $availableTasksForModal,
+            'linkedTasks' => $linkedTasks,
             'availablePrerequisitesForModal' => $availablePrerequisitesForModal,
             'statusCounts' => [
                 'semua' => $allLessonsCount,
@@ -488,7 +508,8 @@ class LessonManagement extends Component
             'newPdfLabel', 'newVideoUrl', 'newVideoTitle', 'newVideoPreviewId',
             'is_gated', 'completion_rule', 'prerequisite_lesson_id', 'checkpoints',
             'isCreatingNewTask', 'newTaskTitle', 'newTaskInstructions', 'newTaskSubmissionTypes',
-            'newTaskDueAt', 'newTaskMaxScore', 'newTaskKktp', 'newTaskTemplateFile'
+            'newTaskDueAt', 'newTaskMaxScore', 'newTaskKktp', 'newTaskTemplateFile',
+            'showTaskBankModal', 'taskBankSearch', 'taskBankTpFilter'
         ]);
 
         $this->status = 'draft';
@@ -827,6 +848,32 @@ class LessonManagement extends Component
             if (empty($this->newTaskDueAt)) {
                 $this->newTaskDueAt = Carbon::now('Asia/Jakarta')->addDays(7)->setHour(23)->setMinute(59)->format('Y-m-d\TH:i');
             }
+        }
+    }
+
+    public function openTaskBankModal(): void
+    {
+        $this->showTaskBankModal = true;
+        $this->taskBankSearch = '';
+        $this->taskBankTpFilter = $this->learning_objective_id ? (string)$this->learning_objective_id : '';
+    }
+
+    public function closeTaskBankModal(): void
+    {
+        $this->showTaskBankModal = false;
+    }
+
+    public function unlinkTask(int $taskId): void
+    {
+        $this->selectedTaskIds = array_values(array_filter($this->selectedTaskIds, fn($id) => (int)$id !== $taskId));
+    }
+
+    public function toggleTaskSelection(int $taskId): void
+    {
+        if (in_array($taskId, $this->selectedTaskIds)) {
+            $this->selectedTaskIds = array_values(array_filter($this->selectedTaskIds, fn($id) => (int)$id !== $taskId));
+        } else {
+            $this->selectedTaskIds[] = $taskId;
         }
     }
 

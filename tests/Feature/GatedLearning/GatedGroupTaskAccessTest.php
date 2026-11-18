@@ -12,6 +12,7 @@ use App\Models\LessonProgress;
 use App\Models\Submission;
 use App\Models\User;
 use App\Livewire\Siswa\Tugas\KerjakanTugas;
+use App\Livewire\Guru\Tugas\Detail as GuruTugasDetail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -218,4 +219,23 @@ test('pengumpulan tugas kelompok berhasil jika seluruh anggota sudah menuntaskan
 
     // Submission terbentuk untuk ketua dan anggota kelompok
     expect(Submission::where('assessment_id', $this->assessment->id)->count())->toBeGreaterThanOrEqual(1);
+});
+
+test('guru can delete or dissolve study group from task detail page', function () {
+    $group = AssessmentGroup::create([
+        'assessment_id' => $this->assessment->id,
+        'classroom_id' => $this->classroom->id,
+        'name' => 'Kelompok Hapus',
+        'leader_id' => $this->leader->id,
+    ]);
+    $group->members()->attach([$this->leader->id, $this->studentRajin->id]);
+
+    Livewire::actingAs($this->teacher)
+        ->test(GuruTugasDetail::class, ['assessment' => $this->assessment])
+        ->set('activeTab', 'kelompok')
+        ->assertSee('Kelompok Hapus')
+        ->call('deleteGroupTeacher', $group->id)
+        ->assertHasNoErrors();
+
+    expect(AssessmentGroup::find($group->id))->toBeNull();
 });
